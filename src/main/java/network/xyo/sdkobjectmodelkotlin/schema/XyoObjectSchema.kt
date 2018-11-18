@@ -1,6 +1,8 @@
 package network.xyo.sdkobjectmodelkotlin.schema
 
 import network.xyo.sdkobjectmodelkotlin.exceptions.XyoSchemaException
+import org.json.JSONObject
+import java.math.BigInteger
 
 @ExperimentalUnsignedTypes
 /**
@@ -189,6 +191,51 @@ abstract class XyoObjectSchema {
             }
 
             throw XyoSchemaException("Invalid Size: ${encodingCatalogue.toString(2)}")
+        }
+
+        /**
+         * Creates a schema from a json schema.
+         *
+         * @param string The json object in string form.
+         */
+        fun fromJson(string: String) : XyoObjectSchema {
+            val jsonObject = JSONObject(string)
+            val id = jsonObject["id"] as String
+            val sizeIdentifier = jsonObject["sizeIdentifier"] as Int
+            val isIterator = jsonObject["isIterable"] as Boolean
+            val isTyped = jsonObject["isTyped"] as Boolean
+            val meta = jsonObject["meta"] as JSONObject
+
+            return object : XyoObjectSchema() {
+                override val id: UByte = stringToByte(id)
+                override val isIterable: Boolean = isIterator
+                override val isTyped: Boolean = isTyped
+                override val meta: XyoObjectSchemaMeta? = getMetaFromJsonObject(meta)
+                override val sizeIdentifier: Int = sizeIdentifier
+            }
+        }
+
+        /**
+         * Gets the string encoded byte to a UByte
+         *
+         * @param string The encoded byte. For example, 0x04
+         * @return UByte 0x04 -> 4(UByte)
+         */
+        private fun stringToByte(string: String) : UByte {
+            return BigInteger(string.removeRange(0, 2), 16).toByteArray()[0].toUByte()
+        }
+
+        /**
+         * Gets a schema meta object from a json object.
+         *
+         * @param jsonObject The json object to read the meta from
+         * @return XyoObjectSchemaMeta The meta schema
+         */
+        private fun getMetaFromJsonObject (jsonObject: JSONObject) : XyoObjectSchemaMeta? {
+            return object : XyoObjectSchemaMeta() {
+                override val desc: String? = jsonObject["desc"] as String?
+                override val name: String? = jsonObject["name"] as String?
+            }
         }
     }
 }

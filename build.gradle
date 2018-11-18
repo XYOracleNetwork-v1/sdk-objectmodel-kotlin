@@ -39,6 +39,7 @@ repositories {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation "org.json:json:20160212"
     testImplementation "junit:junit:4.11"
 }
 

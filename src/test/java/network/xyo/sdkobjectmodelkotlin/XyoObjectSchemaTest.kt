@@ -51,4 +51,31 @@ class XyoObjectSchemaTest {
 
         Assert.assertArrayEquals(testSchema.header.toByteArray(), recreatedTestSchema.header.toByteArray())
     }
+
+    @Test
+    fun testCreateFromSchema () {
+        val schema = XyoObjectSchema.fromJson("{\n" +
+                "\t\"id\": \"0x1b\",\n" +
+                "\t\"sizeIdentifier\": 1,\n" +
+                "\t\"isIterable\": false,\n" +
+                "\t\"isTyped\": false,\n" +
+                "\t\"meta\": {\n" +
+                "\t\t\"name\": \"Stub Signature.\",\n" +
+                "\t\t\"desc\": \"Stub Signature for testing.\",\n" +
+                "\t\t\"childs\": [\n" +
+                "\t\t\t\n" +
+                "\t\t]\n" +
+                "\t}\n" +
+                "}")
+
+
+        Assert.assertEquals(0x1b.toUByte(), schema.id)
+        Assert.assertEquals(1, schema.sizeIdentifier)
+        Assert.assertFalse(schema.isIterable)
+        Assert.assertFalse(schema.isTyped)
+        Assert.assertEquals("Stub Signature.", schema.meta?.name)
+        Assert.assertEquals("Stub Signature for testing.", schema.meta?.desc)
+
+
+    }
 }
