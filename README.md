@@ -4,7 +4,7 @@
 
 # sdk-objectmodel-kotlin
 
-[![Maintainability](https://api.codeclimate.com/v1/badges/0459771966b15aa5b54c/maintainability)](https://codeclimate.com/github/XYOracleNetwork/sdk-objectmodel-kotlin/maintainability) [![](https://jitpack.io/v/XYOracleNetwork/sdk-objectmodel-kotlin.svg)](https://jitpack.io/#XYOracleNetwork/sdk-objectmodel-kotlin) [![](https://img.shields.io/gitter/room/XYOracleNetwork/Stardust.svg)](https://gitter.im/XYOracleNetwork/Dev)
+[![Maintainability](https://api.codeclimate.com/v1/badges/0459771966b15aa5b54c/maintainability)](https://codeclimate.com/github/XYOracleNetwork/sdk-objectmodel-kotlin/maintainability) [![](https://jitpack.io/v/XYOracleNetwork/sdk-objectmodel-kotlin.svg)](https://jitpack.io/#XYOracleNetwork/sdk-objectmodel-kotlin) [![](https://img.shields.io/gitter/room/XYOracleNetwork/Stardust.svg)](https://gitter.im/XYOracleNetwork/Dev) [![Test Coverage](https://api.codeclimate.com/v1/badges/0459771966b15aa5b54c/test_coverage)](https://codeclimate.com/github/XYOracleNetwork/sdk-objectmodel-kotlin/test_coverage)
 
 | Branches        | Status           |
 | ------------- |:-------------:|
