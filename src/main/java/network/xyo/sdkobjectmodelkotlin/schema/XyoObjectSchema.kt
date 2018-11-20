@@ -121,13 +121,7 @@ abstract class XyoObjectSchema {
 
     companion object {
 
-        /**
-         * This method creates a schema object with given header.
-         *
-         * @throws XyoSchemaException when uByteArray.size != 2
-         * @param uByteArray The byte array of the header. Obtained from a schema object.header
-         * @return A schema describing the object.
-         */
+        //  This method creates a schema object with given header.
         @ExperimentalUnsignedTypes
         fun createFromHeader (byteArray: ByteArray) : XyoObjectSchema {
             return object : XyoObjectSchema() {
@@ -150,34 +144,22 @@ abstract class XyoObjectSchema {
 
         /**
          * Checks if the encodingCatalogue is typed. The 3rd most significant bit.
-         *
-         * @param encodingCatalogue The encodingCatalogue
-         * @return A bool if the object is typed.
          */
         @ExperimentalUnsignedTypes
         private fun readIsTyped (encodingCatalogue: UByte) : Boolean {
             return (encodingCatalogue and 0x10.toUByte()).toInt() != 0
         }
 
-
         /**
          * Checks if the object is iterable. The 4th most significant bit.
-         *
-         * @param encodingCatalogue The encodingCatalogue
-         * @return A bool if the object is iterable.
          */
         @ExperimentalUnsignedTypes
         private fun readIsIterable (encodingCatalogue: UByte) : Boolean {
            return (encodingCatalogue and 0x20.toUByte()).toInt() != 0
         }
 
-
         /**
          * Checks the size identifier from the encodingCatalogue. The 2 most significant bits.
-         *
-         * @param encodingCatalogue The encodingCatalogue.
-         * @return Either 1, 2, 4, or 8.
-         * @throws XyoSchemaException
          */
         @ExperimentalUnsignedTypes
         private fun readSizeIdentifierFromEncodingCatalogue (encodingCatalogue: UByte) : Int {
@@ -205,8 +187,6 @@ abstract class XyoObjectSchema {
 
         /**
          * Creates a schema from a json schema.
-         *
-         * @param string The json object in string form.
          */
         fun fromJson(string: String) : XyoObjectSchema {
             val jsonObject = JSONObject(string)
@@ -227,9 +207,6 @@ abstract class XyoObjectSchema {
 
         /**
          * Gets the string encoded byte to a UByte
-         *
-         * @param string The encoded byte. For example, 0x04
-         * @return UByte 0x04 -> 4(UByte)
          */
         private fun stringToByte(string: String) : Byte {
             return BigInteger(string.removeRange(0, 2), 16).toByteArray()[0]
@@ -237,9 +214,6 @@ abstract class XyoObjectSchema {
 
         /**
          * Gets a schema meta object from a json object.
-         *
-         * @param jsonObject The json object to read the meta from
-         * @return XyoObjectSchemaMeta The meta schema
          */
         private fun getMetaFromJsonObject (jsonObject: JSONObject) : XyoObjectSchemaMeta? {
             return object : XyoObjectSchemaMeta() {

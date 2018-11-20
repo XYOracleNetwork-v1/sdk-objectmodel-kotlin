@@ -12,9 +12,6 @@ object XyoObjectCreator {
 
     /**
      * Creates a Xyo Object with a schema and a value.
-     *
-     * @param schema The Schema to make the object with
-     * @param value The value to create the object with
      */
     fun createObject (schema : XyoObjectSchema, value : ByteArray) : ByteArray {
         val buffer = ByteBuffer.allocate(value.size + schema.sizeIdentifier + 2)
@@ -26,8 +23,6 @@ object XyoObjectCreator {
 
     /**
      * Gets the best size of size to use.
-     *
-     * @param sizeOfItem The expected size of the item.
      */
     fun getSmartSize (sizeOfItem : UInt) : Int {
         if (sizeOfItem + 1.toUInt() <= UByte.MAX_VALUE) {
@@ -47,9 +42,6 @@ object XyoObjectCreator {
 
     /**
      * Gets the encoded size for an item.
-     *
-     * @param sizeOfItem The size of the value of the item.
-     * @param schema The schema of the item.
      */
     private fun createSize (sizeOfItem : UInt, schema: XyoObjectSchema) : ByteArray {
         when (schema.sizeIdentifier) {
