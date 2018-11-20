@@ -60,8 +60,9 @@ jobs:
                     mkdir -p ~/junit/
                     find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ~/junit/ \;
                     gradle jacocoTestReport
-                    mv ./build/reports/jacoco/test/jacocoTestReport.xml ./build/reports/jacoco/test/jacoco.xml
-                    ./cc-test-reporter after-build --coverage-input-type jacoco --prefix ./build/reports/jacoco/test/
+                    JACOCO_SOURCE_PATH="./src"
+                    ./cc-test-reporter format-coverage --coverage-input-type jacoco -p ./build/reports/jacoco/test/jacocoTestReport.xml
+                    ./cc-test-reporter upload-coverage --coverage-input-type jacoco -p ./build/reports/jacoco/test/jacocoTestReport.xml
       - store_artifacts:
           path: ~/junit
       - store_test_results:
