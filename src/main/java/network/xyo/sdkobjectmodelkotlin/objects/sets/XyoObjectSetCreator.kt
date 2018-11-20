@@ -12,9 +12,6 @@ object XyoObjectSetCreator {
 
     /**
      * Creates an untyped array. (An array that can contain different types of objects)
-     *
-     * @param schema The schema for the set.
-     * @param values All of the objects for the set.
      */
     fun createUntypedIterableObject (schema: XyoObjectSchema, values: Array<ByteArray>) : ByteArray {
         if (schema.isTyped) {
@@ -37,10 +34,7 @@ object XyoObjectSetCreator {
     }
 
     /**
-     * Creates an typed array. (An array that can only contain a single type of object)
-     *
-     * @param schema The schema for the set.
-     * @param values All of the objects for the set.
+     * Creates an typed array. (An array that can only contain a single type of object).
      */
     fun createTypedIterableObject (schema: XyoObjectSchema, values: Array<ByteArray>) : ByteArray {
         if (!schema.isTyped) {
