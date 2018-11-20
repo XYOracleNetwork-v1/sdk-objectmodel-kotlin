@@ -4,7 +4,6 @@ import network.xyo.sdkobjectmodelkotlin.exceptions.XyoSchemaException
 import org.json.JSONObject
 import java.math.BigInteger
 
-@ExperimentalUnsignedTypes
 /**
  * A information class used to represent all identifying factors in the XyoObjectModel. This is typically represented
  * as the first two bytes in an object (The encoding catalogue and the ID). You can create a XyoObjectSchema from an
@@ -15,7 +14,7 @@ abstract class XyoObjectSchema {
     /**
      * The ID id the the object
      */
-    abstract val id : UByte
+    abstract val id : Byte
 
     /**
      * The size of the size indicator. This value can be 1, 2, 4, 8, or null. If the value is null, this value will be
@@ -61,13 +60,14 @@ abstract class XyoObjectSchema {
      *
      * @throws XyoSchemaException when the sizeIdentifier is not 1, 2, 4, 8, or null
      */
+    @ExperimentalUnsignedTypes
     private val sizeIdentifierByte : UByte
         get() {
             when (sizeIdentifier) {
-                1 -> return 0x00.toUByte() or (0x00.toUByte())
-                2 -> return 0x00.toUByte() or (0x40.toUByte())
-                4 -> return 0x00.toUByte() or (0x80.toUByte())
-                8 -> return 0x00.toUByte() or (0xC0.toUByte())
+                1 -> return (0x00.toUByte())
+                2 -> return (0x40.toUByte())
+                4 -> return (0x80.toUByte())
+                8 -> return (0xC0.toUByte())
             }
             throw XyoSchemaException("Invalid Size $sizeIdentifier")
         }
@@ -76,10 +76,11 @@ abstract class XyoObjectSchema {
      * The 3rd most significant bit that represent sif the object is iterable. This value is obtained from
      * isIterable.
      */
+    @ExperimentalUnsignedTypes
     private val iterableByte : UByte
         get() {
             if (isIterable) {
-                return 0x00.toUByte() or (0x20.toUByte())
+                return 0x20.toUByte()
             }
 
             return 0x00.toUByte()
@@ -88,6 +89,7 @@ abstract class XyoObjectSchema {
     /**
      * The 4th most significant bit that represents if the following object is typed.
      */
+    @ExperimentalUnsignedTypes
     private val typedByte : UByte
         get() {
             if (isTyped) {
@@ -101,6 +103,7 @@ abstract class XyoObjectSchema {
      * The first byte of the object. This value contains the sizeIdentifierByte, the iterableByte, the typedByte, and
      * four reserved bits (4 least significant bits).
      */
+    @ExperimentalUnsignedTypes
     val encodingCatalogue : UByte
         get() {
             return sizeIdentifierByte or iterableByte or typedByte
@@ -110,9 +113,10 @@ abstract class XyoObjectSchema {
      * The header of the schema or object, with the first byte being the encodingCatalogue, and the second catalogue ]
      * being the ID of the object.
      */
-    val header : UByteArray
+    @ExperimentalUnsignedTypes
+    val header : ByteArray
         get() {
-            return ubyteArrayOf(encodingCatalogue, id.toUByte())
+            return byteArrayOf(encodingCatalogue.toByte(), id)
         }
 
     companion object {
@@ -124,21 +128,22 @@ abstract class XyoObjectSchema {
          * @param uByteArray The byte array of the header. Obtained from a schema object.header
          * @return A schema describing the object.
          */
-        fun createFromHeader (uByteArray: UByteArray) : XyoObjectSchema {
+        @ExperimentalUnsignedTypes
+        fun createFromHeader (byteArray: ByteArray) : XyoObjectSchema {
             return object : XyoObjectSchema() {
-                override val id: UByte
-                    get() = uByteArray[1]
+                override val id: Byte
+                    get() = byteArray[1]
 
                 override val isIterable: Boolean
-                    get() = readIsIterable(uByteArray[0])
+                    get() = readIsIterable(byteArray[0].toUByte())
 
                 override val isTyped: Boolean
-                    get() = readIsTyped(uByteArray[0])
+                    get() = readIsTyped(byteArray[0].toUByte())
 
                 override val meta: XyoObjectSchemaMeta? = null
 
                 override val sizeIdentifier: Int
-                    get() = readSizeIdentifierFromEncodingCatalogue(uByteArray[0])
+                    get() = readSizeIdentifierFromEncodingCatalogue(byteArray[0].toUByte())
             }
         }
 
@@ -149,6 +154,7 @@ abstract class XyoObjectSchema {
          * @param encodingCatalogue The encodingCatalogue
          * @return A bool if the object is typed.
          */
+        @ExperimentalUnsignedTypes
         private fun readIsTyped (encodingCatalogue: UByte) : Boolean {
             return (encodingCatalogue and 0x10.toUByte()).toInt() != 0
         }
@@ -160,6 +166,7 @@ abstract class XyoObjectSchema {
          * @param encodingCatalogue The encodingCatalogue
          * @return A bool if the object is iterable.
          */
+        @ExperimentalUnsignedTypes
         private fun readIsIterable (encodingCatalogue: UByte) : Boolean {
            return (encodingCatalogue and 0x20.toUByte()).toInt() != 0
         }
@@ -172,21 +179,24 @@ abstract class XyoObjectSchema {
          * @return Either 1, 2, 4, or 8.
          * @throws XyoSchemaException
          */
+        @ExperimentalUnsignedTypes
         private fun readSizeIdentifierFromEncodingCatalogue (encodingCatalogue: UByte) : Int {
 
-            if ((encodingCatalogue and 0x80.toUByte()).toInt() != 0) {
-                return 4
-            }
-
-            if ((encodingCatalogue and 0x40.toUByte()).toInt() != 0) {
-                return 2
-            }
-
-            if ((encodingCatalogue and 0xC0.toUByte()).toInt() == 0) {
+            // masking the first two bits to get the result
+            // 0xC0 == 11000000
+            if (encodingCatalogue and 0xC0.toUByte() == 0x00.toUByte()) {
                 return 1
             }
 
-            if ((encodingCatalogue and 0xC0.toUByte()).toInt() != 0) {
+            if (encodingCatalogue and 0xC0.toUByte() == 0x40.toUByte()) {
+                return 2
+            }
+
+            if (encodingCatalogue and 0xC0.toUByte() == 0x80.toUByte()) {
+                return 4
+            }
+
+            if (encodingCatalogue and 0xC0.toUByte() == 0xC0.toUByte()) {
                 return 8
             }
 
@@ -207,7 +217,7 @@ abstract class XyoObjectSchema {
             val meta = jsonObject["meta"] as JSONObject
 
             return object : XyoObjectSchema() {
-                override val id: UByte = stringToByte(id)
+                override val id: Byte = stringToByte(id)
                 override val isIterable: Boolean = isIterator
                 override val isTyped: Boolean = isTyped
                 override val meta: XyoObjectSchemaMeta? = getMetaFromJsonObject(meta)
@@ -221,8 +231,8 @@ abstract class XyoObjectSchema {
          * @param string The encoded byte. For example, 0x04
          * @return UByte 0x04 -> 4(UByte)
          */
-        private fun stringToByte(string: String) : UByte {
-            return BigInteger(string.removeRange(0, 2), 16).toByteArray()[0].toUByte()
+        private fun stringToByte(string: String) : Byte {
+            return BigInteger(string.removeRange(0, 2), 16).toByteArray()[0]
         }
 
         /**

@@ -10,7 +10,7 @@ class XyoObjectSchemaTest {
     @Test
     fun testEncodingCatalogue () {
         val testSchema = object : XyoObjectSchema() {
-            override val id: UByte = 0x13.toUByte()
+            override val id: Byte = 0x13
             override val isIterable: Boolean = true
             override val isTyped: Boolean = false
             override val sizeIdentifier: Int = 2
@@ -25,7 +25,7 @@ class XyoObjectSchemaTest {
     @Test
     fun testHeader () {
         val testSchema = object : XyoObjectSchema() {
-            override val id: UByte = 0x11.toUByte()
+            override val id: Byte = 0x11
             override val isIterable: Boolean = true
             override val isTyped: Boolean = false
             override val sizeIdentifier: Int = 2
@@ -34,13 +34,13 @@ class XyoObjectSchemaTest {
 
         val encodingCatalogue = testSchema.header
 
-        Assert.assertArrayEquals(ubyteArrayOf(0x60.toUByte() /* 01100000 */, 0x11.toUByte()).toByteArray(), encodingCatalogue.toByteArray())
+        Assert.assertArrayEquals(ubyteArrayOf(0x60.toUByte() /* 01100000 */, 0x11.toUByte()).toByteArray(), encodingCatalogue)
     }
 
     @Test
     fun testCreateSchemaFromHeader () {
         val testSchema = object : XyoObjectSchema() {
-            override val id: UByte = 0x12.toUByte()
+            override val id: Byte = 0x12
             override val isIterable: Boolean = true
             override val isTyped: Boolean = false
             override val sizeIdentifier: Int = 2
@@ -49,7 +49,59 @@ class XyoObjectSchemaTest {
 
         val recreatedTestSchema = XyoObjectSchema.createFromHeader(testSchema.header)
 
-        Assert.assertArrayEquals(testSchema.header.toByteArray(), recreatedTestSchema.header.toByteArray())
+        Assert.assertArrayEquals(testSchema.header, recreatedTestSchema.header)
+    }
+
+    @Test
+    fun test1ByteSize () {
+        val testHeader = object : XyoObjectSchema() {
+            override val id: Byte = 0x12
+            override val isIterable: Boolean = true
+            override val isTyped: Boolean = false
+            override val sizeIdentifier: Int = 1
+            override val meta: XyoObjectSchemaMeta? = null
+        }.header
+
+        Assert.assertEquals(1, XyoObjectSchema.createFromHeader(testHeader).sizeIdentifier)
+    }
+
+    @Test
+    fun test2ByteSize () {
+        val testHeader = object : XyoObjectSchema() {
+            override val id: Byte = 0x12
+            override val isIterable: Boolean = true
+            override val isTyped: Boolean = false
+            override val sizeIdentifier: Int = 2
+            override val meta: XyoObjectSchemaMeta? = null
+        }.header
+
+        Assert.assertEquals(2, XyoObjectSchema.createFromHeader(testHeader).sizeIdentifier)
+    }
+
+    @Test
+    fun test4ByteSize () {
+        val testHeader = object : XyoObjectSchema() {
+            override val id: Byte = 0x12
+            override val isIterable: Boolean = true
+            override val isTyped: Boolean = false
+            override val sizeIdentifier: Int = 4
+            override val meta: XyoObjectSchemaMeta? = null
+        }.header
+
+        Assert.assertEquals(4, XyoObjectSchema.createFromHeader(testHeader).sizeIdentifier)
+    }
+
+    @Test
+    fun test8ByteSize () {
+        val testHeader = object : XyoObjectSchema() {
+            override val id: Byte = 0x12
+            override val isIterable: Boolean = true
+            override val isTyped: Boolean = false
+            override val sizeIdentifier: Int = 8
+            override val meta: XyoObjectSchemaMeta? = null
+        }.header
+
+        Assert.assertEquals(8, XyoObjectSchema.createFromHeader(testHeader).sizeIdentifier)
     }
 
     @Test
@@ -69,13 +121,11 @@ class XyoObjectSchemaTest {
                 "}")
 
 
-        Assert.assertEquals(0x1b.toUByte(), schema.id)
+        Assert.assertEquals(0x1b.toByte(), schema.id)
         Assert.assertEquals(1, schema.sizeIdentifier)
         Assert.assertFalse(schema.isIterable)
         Assert.assertFalse(schema.isTyped)
         Assert.assertEquals("Stub Signature.", schema.meta?.name)
         Assert.assertEquals("Stub Signature for testing.", schema.meta?.desc)
-
-
     }
 }

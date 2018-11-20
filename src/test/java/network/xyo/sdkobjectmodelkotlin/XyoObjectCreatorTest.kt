@@ -32,7 +32,7 @@ class XyoObjectCreatorTest {
     @Test
     fun testCreateObject() {
         val schema = object : XyoObjectSchema() {
-            override val id: UByte = 0x44.toUByte()
+            override val id: Byte = 0x44
             override val isIterable: Boolean = false
             override val isTyped: Boolean = false
             override val meta: XyoObjectSchemaMeta? = null
@@ -44,6 +44,11 @@ class XyoObjectCreatorTest {
         val createdObject = XyoObjectCreator.createObject(schema, value)
 
         Assert.assertArrayEquals(expectedObject, createdObject)
+    }
 
+    @Test
+    fun getObjectValueTest () {
+        val testObject = byteArrayOf(0x00, 0x44, 0x02, 0x13)
+        Assert.assertArrayEquals(byteArrayOf(0x13), XyoObjectCreator.getObjectValue(testObject))
     }
 }

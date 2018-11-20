@@ -5,7 +5,6 @@ import network.xyo.sdkobjectmodelkotlin.objects.XyoObjectCreator
 import network.xyo.sdkobjectmodelkotlin.schema.XyoObjectSchema
 import java.nio.ByteBuffer
 
-@ExperimentalUnsignedTypes
 /**
  * An object fir creating sets (arrays).
  */
@@ -55,11 +54,14 @@ object XyoObjectSetCreator {
         }
 
         val buffer = ByteBuffer.allocate(totalSize)
-        buffer.put(values[0].copyOfRange(0, 2))
+        if (values.isNotEmpty()) {
+            buffer.put(values[0].copyOfRange(0, 2))
 
-        for (item in values) {
-            buffer.put(item.copyOfRange(2, item.size))
+            for (item in values) {
+                buffer.put(item.copyOfRange(2, item.size))
+            }
         }
+
 
         return XyoObjectCreator.createObject(schema, buffer.array())
     }

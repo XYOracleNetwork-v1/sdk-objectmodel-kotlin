@@ -10,7 +10,7 @@ import org.junit.Test
 class XyoObjectSetCreatorTest {
 
     private val objectOneSchema = object : XyoObjectSchema() {
-        override val id: UByte = 0x44.toUByte()
+        override val id: Byte = 0x44
         override val isIterable: Boolean = false
         override val isTyped: Boolean = false
         override val meta: XyoObjectSchemaMeta? = null
@@ -18,7 +18,7 @@ class XyoObjectSetCreatorTest {
     }
 
     private val objectTwoSchema = object : XyoObjectSchema() {
-        override val id: UByte = 0x42.toUByte()
+        override val id: Byte = 0x42
         override val isIterable: Boolean = false
         override val isTyped: Boolean = false
         override val meta: XyoObjectSchemaMeta? = null
@@ -28,7 +28,7 @@ class XyoObjectSetCreatorTest {
     @Test
     fun testCreateUntypedSet () {
         val setSchema = object : XyoObjectSchema() {
-            override val id: UByte = 0x41.toUByte()
+            override val id: Byte = 0x41
             override val isIterable: Boolean = true
             override val isTyped: Boolean = false
             override val meta: XyoObjectSchemaMeta? = null
@@ -46,7 +46,7 @@ class XyoObjectSetCreatorTest {
     @Test
     fun testCreateTypedSet () {
         val setSchema = object : XyoObjectSchema() {
-            override val id: UByte = 0x41.toUByte()
+            override val id: Byte = 0x41
             override val isIterable: Boolean = true
             override val isTyped: Boolean = true
             override val meta: XyoObjectSchemaMeta? = null
