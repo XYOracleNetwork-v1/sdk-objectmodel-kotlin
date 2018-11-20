@@ -62,6 +62,9 @@ jobs:
                     gradle jacocoTestReport
                     JACOCO_SOURCE_PATH="./src"
                     ./cc-test-reporter format-coverage --input-type jacoco -p ./build/reports/jacoco/test/jacocoTestReport.xml
+                    ls
+                    echo "hello"
+                    ls ./build/reports/jacoco/test/
                     ./cc-test-reporter upload-coverage --input-type jacoco --add-prefix ./build/reports/jacoco/test/
       - store_artifacts:
           path: ~/junit
