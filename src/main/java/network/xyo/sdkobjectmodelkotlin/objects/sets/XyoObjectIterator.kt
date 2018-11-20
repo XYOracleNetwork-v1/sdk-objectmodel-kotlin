@@ -10,8 +10,6 @@ import java.util.ArrayList
 @ExperimentalUnsignedTypes
 /**
  * An Iterator for iterating over sets created with XyoObjectSetCreator.
- *
- * @property item The set to iterate over.
  */
 class XyoObjectIterator (private val item : ByteArray) : Iterator<ByteArray> {
     private var globalSchema : XyoObjectSchema? = null
@@ -47,30 +45,19 @@ class XyoObjectIterator (private val item : ByteArray) : Iterator<ByteArray> {
 
     /**
      * Reads the size of the object at the current offset.
-     *
-     * @param sizeToReadForSize The number of bytes to read for the size.
      */
     private fun readSizeOfObject (sizeToReadForSize : Int) : Int {
+        val buffer = ByteBuffer.allocate(sizeToReadForSize)
+        currentOffset += sizeToReadForSize
+        buffer.put(item.copyOfRange(currentOffset - sizeToReadForSize, currentOffset))
+
         when (sizeToReadForSize) {
-            1 -> {
-                currentOffset++
-                return item[currentOffset - 1].toInt()
-            }
-
-            2 -> {
-                currentOffset += 2
-                return ByteBuffer.allocate(2).put(item.copyOfRange(currentOffset - 2, currentOffset)).getShort(0).toInt()
-            }
-
-            4 -> {
-                currentOffset += 4
-                return ByteBuffer.allocate(4).put(item.copyOfRange(currentOffset - 4, currentOffset)).getInt(0)
-            }
-
-            else -> {
-                throw Exception("Stub for long size")
-            }
+            1 -> return buffer[0].toInt()
+            2 -> return buffer.getShort(0).toInt()
+            4 -> return buffer.getInt(0)
         }
+
+        throw Exception("Stub for long size")
     }
 
     /**
