@@ -45,6 +45,13 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Code Climate Set Up
+          command: |
+            # download test reporter as a static binary
+              curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+              chmod +x ./cc-test-reporter
+              ./cc-test-reporter before-build
+      - run:
           name: Test
           command: gradle test
       - run:
@@ -52,6 +59,7 @@ jobs:
           command: |
                     mkdir -p ~/junit/
                     find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ~/junit/ \;
+                    ./cc-test-reporter after-build --coverage-input-type jacoco
       - store_artifacts:
           path: ~/junit
       - store_test_results:
