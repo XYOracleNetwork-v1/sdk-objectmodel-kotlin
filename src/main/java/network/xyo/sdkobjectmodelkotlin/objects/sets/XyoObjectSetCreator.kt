@@ -60,4 +60,30 @@ object XyoObjectSetCreator {
         return XyoObjectCreator.createObject(schema, buffer.array())
     }
 
+    /**
+     * Adds to a set
+     */
+    fun addToIterableObject (item : ByteArray, set : ByteArray) : ByteArray {
+        val setSchema = XyoObjectSchema.createFromHeader(set.copyOfRange(0, 2))
+        val setValue = XyoObjectCreator.getObjectValue(set)
+
+        if (!setSchema.isIterable) throw XyoObjectExceotion("Can no add to non-iterable object.")
+
+        if (setSchema.isTyped) {
+            val schemaOfType = set.copyOfRange(2 + setSchema.sizeIdentifier, 4 + setSchema.sizeIdentifier)
+
+            if (!schemaOfType.contentEquals(item.copyOfRange(0, 2))) throw XyoObjectExceotion("Can not add different " +
+                    "type to typed array!")
+
+            val buffer = ByteBuffer.allocate(setValue.size + item.size - 2)
+            buffer.put(setValue)
+            buffer.put(item.copyOfRange(2, item.size))
+            return XyoObjectCreator.createObject(setSchema, buffer.array())
+        }
+
+        val buffer = ByteBuffer.allocate(setValue.size + item.size)
+        buffer.put(setValue)
+        buffer.put(item)
+        return XyoObjectCreator.createObject(setSchema, buffer.array())
+    }
 }
