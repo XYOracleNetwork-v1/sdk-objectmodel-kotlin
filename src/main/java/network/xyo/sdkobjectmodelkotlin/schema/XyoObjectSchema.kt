@@ -120,6 +120,10 @@ abstract class XyoObjectSchema {
 
         //  This method creates a schema object with given header.
         fun createFromHeader (byteArray: ByteArray) : XyoObjectSchema {
+            if (byteArray.size != 2) {
+                throw XyoSchemaException("Expected header size to be 2, saw: ${byteArray.size}")
+            }
+
             return object : XyoObjectSchema() {
                 override val id: Byte
                     get() = byteArray[1]

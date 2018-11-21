@@ -2,10 +2,7 @@ package network.xyo.sdkobjectmodelkotlin.objects.sets
 
 import network.xyo.sdkobjectmodelkotlin.exceptions.XyoObjectIteratorException
 import network.xyo.sdkobjectmodelkotlin.schema.XyoObjectSchema
-import java.lang.reflect.Array
-import java.nio.Buffer
 import java.nio.ByteBuffer
-import java.util.ArrayList
 import kotlin.experimental.and
 
 /**
@@ -30,11 +27,13 @@ open class XyoObjectIterator (private val item : ByteArray) : Iterator<ByteArray
         val startingIndex = currentOffset
         val schemaOfItem =  globalSchema ?: getNextHeader()
         val sizeOfObject = readSizeOfObject(schemaOfItem.sizeIdentifier)
+        checkBounds(sizeOfObject - 1)
 
         if (globalSchema == null) {
             currentOffset = startingIndex + sizeOfObject + 2
             return item.copyOfRange(startingIndex, startingIndex + sizeOfObject + 2)
         }
+
 
         val buffer = ByteBuffer.allocate(sizeOfObject + 2)
         buffer.put(schemaOfItem.header)
@@ -43,15 +42,20 @@ open class XyoObjectIterator (private val item : ByteArray) : Iterator<ByteArray
         return buffer.array()
     }
 
+    private fun checkBounds (size : Int) {
+        if (size + currentOffset > item.size) {
+            throw XyoObjectIteratorException("Out of size. Length: ${item.size}, To Read: ${size + currentOffset}")
+        }
+    }
 
     /**
      * Reads the size of the object at the current offset.
      */
     private fun readSizeOfObject (sizeToReadForSize : Int) : Int {
         val buffer = ByteBuffer.allocate(sizeToReadForSize)
+        checkBounds(sizeToReadForSize)
         currentOffset += sizeToReadForSize
         buffer.put(item.copyOfRange(currentOffset - sizeToReadForSize, currentOffset))
-
 
         when (sizeToReadForSize) {
             1 -> return (buffer[0] and 0xFF.toByte()).toInt()
@@ -66,11 +70,7 @@ open class XyoObjectIterator (private val item : ByteArray) : Iterator<ByteArray
      * Gets the next object schema at the current offset.
      */
     private fun getNextHeader () : XyoObjectSchema {
-        if ((currentOffset + 2) > item.size) {
-            throw XyoObjectIteratorException("Out of size, trying to read header at offset: $currentOffset. " +
-                    "Max: ${item.size}")
-        }
-
+        checkBounds(2)
         currentOffset += 2
         return  XyoObjectSchema.createFromHeader(item.copyOfRange(currentOffset - 2, currentOffset))
     }
