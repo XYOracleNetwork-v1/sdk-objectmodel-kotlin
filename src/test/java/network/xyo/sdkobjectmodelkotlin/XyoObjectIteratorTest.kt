@@ -68,8 +68,6 @@ class XyoObjectIteratorTest  {
             for (item in iterator) { }
 
             throw Exception("Expected XyoObjectIteratorException to be thrown!")
-        } catch (e : XyoObjectIteratorException) {
-            println(e)
-        }
+        } catch (e : XyoObjectIteratorException) { }
     }
 }

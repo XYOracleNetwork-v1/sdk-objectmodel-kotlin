@@ -1,6 +1,10 @@
 package network.xyo.sdkobjectmodelkotlin.objects
 
+import network.xyo.sdkobjectmodelkotlin.objects.sets.XyoObjectIterator
 import network.xyo.sdkobjectmodelkotlin.schema.XyoObjectSchema
+import org.json.JSONArray
+import org.json.JSONObject
+import java.lang.StringBuilder
 import java.nio.ByteBuffer
 
 
@@ -45,4 +49,29 @@ object XyoObjectCreator {
         return item.copyOfRange(2 + objectSchema.sizeIdentifier, item.size)
     }
 
+    fun itemToJSON (item : ByteArray) : JSONArray {
+        val itemHeader = XyoObjectSchema.createFromHeader(item.copyOfRange(0, 2))
+        val rootJsonObject = JSONArray()
+
+        if (itemHeader.isIterable) {
+            for (subItem in XyoObjectIterator(item)) {
+                rootJsonObject.put(itemToJSON(subItem))
+            }
+        } else {
+            rootJsonObject.put(item.toHexString())
+        }
+
+        return rootJsonObject
+    }
+
+    private fun ByteArray.toHexString(): String {
+        val builder = StringBuilder()
+        val it = this.iterator()
+        builder.append("0x")
+        while (it.hasNext()) {
+            builder.append(String.format("%02X", it.next()))
+        }
+
+        return builder.toString()
+    }
 }

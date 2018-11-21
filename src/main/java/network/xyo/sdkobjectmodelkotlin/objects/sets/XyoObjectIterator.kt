@@ -27,13 +27,12 @@ open class XyoObjectIterator (private val item : ByteArray) : Iterator<ByteArray
         val startingIndex = currentOffset
         val schemaOfItem =  globalSchema ?: getNextHeader()
         val sizeOfObject = readSizeOfObject(schemaOfItem.sizeIdentifier)
-        checkBounds(sizeOfObject - 1)
+        checkBounds(sizeOfObject - schemaOfItem.sizeIdentifier)
 
         if (globalSchema == null) {
             currentOffset = startingIndex + sizeOfObject + 2
             return item.copyOfRange(startingIndex, startingIndex + sizeOfObject + 2)
         }
-
 
         val buffer = ByteBuffer.allocate(sizeOfObject + 2)
         buffer.put(schemaOfItem.header)
@@ -89,6 +88,22 @@ open class XyoObjectIterator (private val item : ByteArray) : Iterator<ByteArray
         return next
     }
 
+    operator fun get(type: Byte): Array<ByteArray> {
+        val itemsThatFollowTheType = ArrayList<ByteArray>()
+
+        while (hasNext()) {
+            val next = next()
+            val nextHeader = XyoObjectSchema.createFromHeader(next.copyOfRange(0, 2))
+
+            if (nextHeader.id == type) {
+                itemsThatFollowTheType.add(next)
+            }
+        }
+
+        reset()
+        return itemsThatFollowTheType.toTypedArray()
+    }
+
     val size : Int
         get() {
             var i = 0
@@ -98,10 +113,14 @@ open class XyoObjectIterator (private val item : ByteArray) : Iterator<ByteArray
                 i++
             }
 
-            currentOffset = 0
-            readOwnHeader()
+            reset()
             return i
         }
+
+    private fun reset() {
+        currentOffset = 0
+        readOwnHeader()
+    }
 
     private fun readOwnHeader () {
         val setHeader = getNextHeader()
