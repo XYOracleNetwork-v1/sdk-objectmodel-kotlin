@@ -4,7 +4,6 @@ import network.xyo.sdkobjectmodelkotlin.objects.sets.XyoObjectIterator
 import org.junit.Assert
 import org.junit.Test
 
-@ExperimentalUnsignedTypes
 class XyoObjectIteratorTest  {
 
     @Test

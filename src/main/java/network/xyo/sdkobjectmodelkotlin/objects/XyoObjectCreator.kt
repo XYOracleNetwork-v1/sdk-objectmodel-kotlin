@@ -7,7 +7,6 @@ import java.nio.ByteBuffer
 /**
  * An object for creating Xyo Objects.
  */
-@ExperimentalUnsignedTypes
 object XyoObjectCreator {
 
     /**
@@ -24,16 +23,16 @@ object XyoObjectCreator {
     /**
      * Gets the best size of size to use.
      */
-    fun getSmartSize (sizeOfItem : UInt) : Int {
-        if (sizeOfItem + 1.toUInt() <= UByte.MAX_VALUE) {
+    fun getSmartSize (sizeOfItem : Int) : Int {
+        if (sizeOfItem + 1 <= Byte.MAX_VALUE) {
             return 1
         }
 
-        if (sizeOfItem + 2.toUInt() <= UShort.MAX_VALUE) {
+        if (sizeOfItem + 2 <= Short.MAX_VALUE) {
             return 2
         }
 
-        if (sizeOfItem + 4.toUInt() <= UInt.MAX_VALUE) {
+        if (sizeOfItem + 4 <= Int.MAX_VALUE) {
             return 4
         }
 

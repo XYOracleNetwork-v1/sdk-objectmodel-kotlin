@@ -7,11 +7,10 @@ import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.util.ArrayList
 
-@ExperimentalUnsignedTypes
 /**
  * An Iterator for iterating over sets created with XyoObjectSetCreator.
  */
-class XyoObjectIterator (private val item : ByteArray) : Iterator<ByteArray> {
+open class XyoObjectIterator (private val item : ByteArray) : Iterator<ByteArray> {
     private var globalSchema : XyoObjectSchema? = null
     private var currentOffset = 0
 
