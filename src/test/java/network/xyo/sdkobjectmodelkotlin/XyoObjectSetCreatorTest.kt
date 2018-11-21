@@ -7,7 +7,6 @@ import network.xyo.sdkobjectmodelkotlin.schema.XyoObjectSchema
 import org.junit.Assert
 import org.junit.Test
 
-@ExperimentalUnsignedTypes
 class XyoObjectSetCreatorTest {
 
     private val objectOneSchema = object : XyoObjectSchema() {

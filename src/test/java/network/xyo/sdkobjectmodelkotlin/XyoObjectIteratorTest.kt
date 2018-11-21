@@ -1,10 +1,10 @@
 package network.xyo.sdkobjectmodelkotlin
 
+import network.xyo.sdkobjectmodelkotlin.exceptions.XyoObjectIteratorException
 import network.xyo.sdkobjectmodelkotlin.objects.sets.XyoObjectIterator
 import org.junit.Assert
 import org.junit.Test
 
-@ExperimentalUnsignedTypes
 class XyoObjectIteratorTest  {
 
     @Test
@@ -58,5 +58,16 @@ class XyoObjectIteratorTest  {
         val iterator = XyoObjectIterator(byteArrayOf(0x30, 0x41, 0x07, 0x00, 0x44, 0x02, 0x13, 0x02, 0x37))
 
         Assert.assertEquals(2, iterator.size)
+    }
+
+    @Test
+    fun testWrongTypes () {
+        try {
+            val iterator = XyoObjectIterator(byteArrayOf(0x20, 0x41, 0x07, 0x00, 0x44, 0x02, 0x13, 0x02, 0x37))
+
+            for (item in iterator) { }
+
+            throw Exception("Expected XyoObjectIteratorException to be thrown!")
+        } catch (e : XyoObjectIteratorException) { }
     }
 }

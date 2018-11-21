@@ -3,6 +3,7 @@ package network.xyo.sdkobjectmodelkotlin
 import network.xyo.sdkobjectmodelkotlin.schema.XyoObjectSchema
 import org.junit.Assert
 import org.junit.Test
+import java.util.*
 
 @ExperimentalUnsignedTypes
 class XyoObjectSchemaTest {
@@ -127,5 +128,19 @@ class XyoObjectSchemaTest {
         Assert.assertFalse(schema.isTyped)
         Assert.assertEquals("Stub Signature.", schema.meta?.name)
         Assert.assertEquals("Stub Signature for testing.", schema.meta?.desc)
+    }
+
+    @Test
+    fun testEveryHeader () {
+        for (i in 0..255) {
+            for (j in 0..255) {
+                val schema = XyoObjectSchema.createFromHeader(byteArrayOf(i.toByte(), j.toByte()))
+
+                // 0x0f = 11110000
+                // we mask off the bottom 4 bits (reserved bits)
+                Assert.assertEquals((i and 0xf0).toByte(), schema.encodingCatalogue)
+                Assert.assertEquals(j.toByte(), schema.id)
+            }
+        }
     }
 }
