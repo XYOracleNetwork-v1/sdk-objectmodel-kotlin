@@ -6,6 +6,7 @@ import java.lang.reflect.Array
 import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.util.ArrayList
+import kotlin.experimental.and
 
 /**
  * An Iterator for iterating over sets created with XyoObjectSetCreator.
@@ -25,6 +26,7 @@ open class XyoObjectIterator (private val item : ByteArray) : Iterator<ByteArray
      * Gets the next item in the set.
      */
     override fun next(): ByteArray {
+
         val startingIndex = currentOffset
         val schemaOfItem =  globalSchema ?: getNextHeader()
         val sizeOfObject = readSizeOfObject(schemaOfItem.sizeIdentifier)
@@ -50,9 +52,10 @@ open class XyoObjectIterator (private val item : ByteArray) : Iterator<ByteArray
         currentOffset += sizeToReadForSize
         buffer.put(item.copyOfRange(currentOffset - sizeToReadForSize, currentOffset))
 
+
         when (sizeToReadForSize) {
-            1 -> return buffer[0].toInt()
-            2 -> return buffer.getShort(0).toInt()
+            1 -> return (buffer[0] and 0xFF.toByte()).toInt()
+            2 -> return (buffer.getShort(0).toInt() and 0xFFFF)
             4 -> return buffer.getInt(0)
         }
 

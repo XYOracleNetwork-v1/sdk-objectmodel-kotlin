@@ -24,11 +24,11 @@ object XyoObjectCreator {
      * Gets the best size of size to use.
      */
     fun getSmartSize (sizeOfItem : Int) : Int {
-        if (sizeOfItem + 1 <= Byte.MAX_VALUE) {
+        if (sizeOfItem + 1 <= 255) {
             return 1
         }
 
-        if (sizeOfItem + 2 <= Short.MAX_VALUE) {
+        if (sizeOfItem + 2 <= 65535) {
             return 2
         }
 
