@@ -90,7 +90,7 @@ class XyoIterableObject (private val item : ByteArray)  {
     }
 
     operator fun get(type: Byte): Array<ByteArray> {
-        val it = XyoObjectIterator(globalSchema?.sizeIdentifier?.plus(2) ?: 0)
+        val it = XyoObjectIterator(startingOffset)
         val itemsThatFollowTheType = ArrayList<ByteArray>()
 
         while (it.hasNext()) {
