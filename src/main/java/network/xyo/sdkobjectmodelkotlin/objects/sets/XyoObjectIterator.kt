@@ -1,63 +1,120 @@
 package network.xyo.sdkobjectmodelkotlin.objects.sets
 
+import network.xyo.sdkobjectmodelkotlin.exceptions.XyoObjectExceotion
 import network.xyo.sdkobjectmodelkotlin.exceptions.XyoObjectIteratorException
 import network.xyo.sdkobjectmodelkotlin.schema.XyoObjectSchema
+import java.lang.StringBuilder
 import java.nio.ByteBuffer
 import kotlin.experimental.and
 
 /**
  * An Iterator for iterating over sets created with XyoObjectSetCreator.
  */
-open class XyoObjectIterator (private val item : ByteArray) : Iterator<ByteArray> {
-    private var globalSchema : XyoObjectSchema? = null
-    private var currentOffset = 0
 
-    /**
-     * Checks if there is another item in the set.
-     */
-    override fun hasNext(): Boolean {
-        return item.size > currentOffset
+class XyoIterableObject (private val item : ByteArray)  {
+    private val startingOffset = readOwnHeader()
+    private var globalSchema : XyoObjectSchema? = null
+    private var biggestOffset = startingOffset
+    private val offsets = ArrayList<Int>()
+
+    val iterator : XyoObjectIterator
+        get() = XyoObjectIterator(startingOffset)
+
+    val size : Int
+        get() {
+            if (biggestOffset == item.size) {
+                return offsets.size
+            }
+
+            val sizeIt = XyoObjectIterator(biggestOffset)
+            while (sizeIt.hasNext()) {sizeIt.next()}
+            return offsets.size
+        }
+
+    private fun readItemAtOffset (startingOffset : Int) : ByteArray {
+        if (globalSchema == null) {
+            return readItemUntyped(startingOffset)
+        }
+        return readItemTyped(startingOffset)
     }
 
-    /**
-     * Gets the next item in the set.
-     */
-    override fun next(): ByteArray {
+    private fun readItemUntyped (startingOffset: Int) : ByteArray {
+        val schemaOfItem = getNextHeader(startingOffset)
+        val sizeOfObject = readSizeOfObject(schemaOfItem.sizeIdentifier, startingOffset + 2)
 
-        val startingIndex = currentOffset
-        val schemaOfItem =  globalSchema ?: getNextHeader()
-        val sizeOfObject = readSizeOfObject(schemaOfItem.sizeIdentifier)
-        checkBounds(sizeOfObject - schemaOfItem.sizeIdentifier)
+        if (biggestOffset <= startingOffset) {
+            offsets.add(startingOffset)
+        }
 
-        if (globalSchema == null) {
-            currentOffset = startingIndex + sizeOfObject + 2
-            return item.copyOfRange(startingIndex, startingIndex + sizeOfObject + 2)
+        biggestOffset = startingOffset + sizeOfObject + 2
+        checkIndex(startingOffset + sizeOfObject + 2)
+        return item.copyOfRange(startingOffset, startingOffset + sizeOfObject + 2)
+    }
+
+    private fun readItemTyped (startingOffset: Int) : ByteArray {
+        val schemaOfItem =  globalSchema ?: throw XyoObjectIteratorException("Global schema is null!")
+        val sizeOfObject = readSizeOfObject(schemaOfItem.sizeIdentifier, startingOffset)
+
+        if (biggestOffset <= startingOffset) {
+            offsets.add(startingOffset)
         }
 
         val buffer = ByteBuffer.allocate(sizeOfObject + 2)
+        checkIndex(startingOffset + sizeOfObject)
         buffer.put(schemaOfItem.header)
-        buffer.put(item.copyOfRange(startingIndex, startingIndex + sizeOfObject))
-        currentOffset = startingIndex + sizeOfObject
+        buffer.put(item.copyOfRange(startingOffset, startingOffset + sizeOfObject))
+
+        biggestOffset = startingOffset + sizeOfObject
         return buffer.array()
     }
 
-    private fun checkBounds (size : Int) {
-        if (size + currentOffset > item.size) {
-            throw XyoObjectIteratorException("Out of size. Length: ${item.size}, To Read: ${size + currentOffset}")
+    operator fun get(index: Int): ByteArray {
+        if (index < offsets.size) {
+            return readItemAtOffset(offsets[index])
         }
+
+        val it = XyoObjectIterator(biggestOffset)
+        var i = offsets.size
+
+        while (it.hasNext()) {
+            val item = it.next()
+
+            if (i == index) {
+                return item
+            }
+
+            i++
+        }
+
+        throw XyoObjectIteratorException("Index out of range!")
+    }
+
+    operator fun get(type: Byte): Array<ByteArray> {
+        val it = XyoObjectIterator(globalSchema?.sizeIdentifier?.plus(2) ?: 0)
+        val itemsThatFollowTheType = ArrayList<ByteArray>()
+
+        while (it.hasNext()) {
+            val next = it.next()
+            val nextHeader = XyoObjectSchema.createFromHeader(next.copyOfRange(0, 2))
+
+            if (nextHeader.id == type) {
+                itemsThatFollowTheType.add(next)
+            }
+        }
+
+        return itemsThatFollowTheType.toTypedArray()
     }
 
     /**
      * Reads the size of the object at the current offset.
      */
-    private fun readSizeOfObject (sizeToReadForSize : Int) : Int {
+    private fun readSizeOfObject (sizeToReadForSize : Int, offset: Int) : Int {
         val buffer = ByteBuffer.allocate(sizeToReadForSize)
-        checkBounds(sizeToReadForSize)
-        currentOffset += sizeToReadForSize
-        buffer.put(item.copyOfRange(currentOffset - sizeToReadForSize, currentOffset))
+        checkIndex(offset + sizeToReadForSize)
+        buffer.put(item.copyOfRange(offset, offset + sizeToReadForSize))
 
         when (sizeToReadForSize) {
-            1 -> return (buffer[0] and 0xFF.toByte()).toInt()
+            1 -> return (buffer[0].toInt() and 0xFF)
             2 -> return (buffer.getShort(0).toInt() and 0xFFFF)
             4 -> return buffer.getInt(0)
         }
@@ -68,63 +125,44 @@ open class XyoObjectIterator (private val item : ByteArray) : Iterator<ByteArray
     /**
      * Gets the next object schema at the current offset.
      */
-    private fun getNextHeader () : XyoObjectSchema {
-        checkBounds(2)
-        currentOffset += 2
-        return  XyoObjectSchema.createFromHeader(item.copyOfRange(currentOffset - 2, currentOffset))
+    private fun getNextHeader (offset : Int) : XyoObjectSchema {
+        return  XyoObjectSchema.createFromHeader(item.copyOfRange(offset, offset + 2))
     }
 
-    operator fun get(index: Int): ByteArray {
-        var i = 0
+    private fun checkIndex (index: Int) {
+        if (index > item.size) {
+            throw XyoObjectIteratorException("Out of size!")
+        }
+    }
 
-        while (index != i) {
-            next()
-            i++
+    inner class XyoObjectIterator (private var currentOffset: Int) : Iterator<ByteArray> {
+
+        /**
+         * Checks if there is another item in the set.
+         */
+        override fun hasNext(): Boolean {
+            return item.size > currentOffset
         }
 
-        val next = next()
-        currentOffset = 0
-        readOwnHeader()
-        return next
-    }
+        /**
+         * Gets the next item in the set.
+         */
+        override fun next(): ByteArray {
+            val nextItem = readItemAtOffset(currentOffset)
 
-    operator fun get(type: Byte): Array<ByteArray> {
-        val itemsThatFollowTheType = ArrayList<ByteArray>()
-
-        while (hasNext()) {
-            val next = next()
-            val nextHeader = XyoObjectSchema.createFromHeader(next.copyOfRange(0, 2))
-
-            if (nextHeader.id == type) {
-                itemsThatFollowTheType.add(next)
-            }
-        }
-
-        reset()
-        return itemsThatFollowTheType.toTypedArray()
-    }
-
-    val size : Int
-        get() {
-            var i = 0
-
-            while (hasNext()) {
-                next()
-                i++
+            if (globalSchema == null) {
+                currentOffset += nextItem.size
+            } else {
+                currentOffset += nextItem.size - 2
             }
 
-            reset()
-            return i
+            return nextItem
         }
-
-    private fun reset() {
-        currentOffset = 0
-        readOwnHeader()
     }
 
-    private fun readOwnHeader () {
-        val setHeader = getNextHeader()
-        val totalSize = readSizeOfObject(setHeader.sizeIdentifier)
+    private fun readOwnHeader () : Int {
+        val setHeader = getNextHeader(0)
+        val totalSize = readSizeOfObject(setHeader.sizeIdentifier, 2)
 
         if ((totalSize + 2) != item.size) {
             throw XyoObjectIteratorException("Array size does not equal header size.")
@@ -135,11 +173,11 @@ open class XyoObjectIterator (private val item : ByteArray) : Iterator<ByteArray
         }
 
         if (setHeader.isTyped) {
-            globalSchema = getNextHeader()
+            globalSchema = getNextHeader(setHeader.sizeIdentifier + 2)
+            return 4 + setHeader.sizeIdentifier
         }
+
+        return 2 + setHeader.sizeIdentifier
     }
 
-    init {
-        readOwnHeader()
-    }
 }

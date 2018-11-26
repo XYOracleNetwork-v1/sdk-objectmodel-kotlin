@@ -1,6 +1,6 @@
 package network.xyo.sdkobjectmodelkotlin.objects
 
-import network.xyo.sdkobjectmodelkotlin.objects.sets.XyoObjectIterator
+import network.xyo.sdkobjectmodelkotlin.objects.sets.XyoIterableObject
 import network.xyo.sdkobjectmodelkotlin.schema.XyoObjectSchema
 import org.json.JSONArray
 import org.json.JSONObject
@@ -54,7 +54,7 @@ object XyoObjectCreator {
         val rootJsonObject = JSONArray()
 
         if (itemHeader.isIterable) {
-            for (subItem in XyoObjectIterator(item)) {
+            for (subItem in XyoIterableObject(item).iterator) {
                 rootJsonObject.put(itemToJSON(subItem))
             }
         } else {
