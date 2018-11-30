@@ -4,8 +4,16 @@ import network.xyo.sdkobjectmodelkotlin.objects.XyoObjectCreator
 import network.xyo.sdkobjectmodelkotlin.schema.XyoObjectSchema
 import org.junit.Assert
 import org.junit.Test
+import java.math.BigInteger
 
 class XyoObjectCreatorTest {
+
+//    @Test
+//    fun test () {
+//        val bytes = BigInteger("A0020000004AA00100000011A0010000000B800E0000000500B0CC0000001EB00700000018A0010000000E8003000000080000000000000004A00100000011A0010000000B800B0000000500", 16).toByteArray()
+//        val correctBytes = bytes.copyOfRange(1, bytes.size)
+//        println(XyoObjectCreator.itemToByteString(correctBytes,0, true))
+//    }
 
     @Test
     fun testSmartSizeForByte () {

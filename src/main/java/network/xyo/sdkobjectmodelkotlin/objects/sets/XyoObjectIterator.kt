@@ -42,6 +42,10 @@ class XyoIterableObject (private val item : ByteArray)  {
         val schemaOfItem = getNextHeader(startingOffset)
         val sizeOfObject = readSizeOfObject(schemaOfItem.sizeIdentifier, startingOffset + 2)
 
+        if (sizeOfObject == 0) {
+            throw XyoObjectIteratorException("Size can not be 0. Value: ${item.toHexString()}")
+        }
+
         if (biggestOffset <= startingOffset) {
             offsets.add(startingOffset)
         }
@@ -54,6 +58,10 @@ class XyoIterableObject (private val item : ByteArray)  {
     private fun readItemTyped (startingOffset: Int) : ByteArray {
         val schemaOfItem =  globalSchema ?: throw XyoObjectIteratorException("Global schema is null!")
         val sizeOfObject = readSizeOfObject(schemaOfItem.sizeIdentifier, startingOffset)
+
+        if (sizeOfObject == 0) {
+            throw XyoObjectIteratorException("Size can not be 0. Value: ${item.toHexString()}")
+        }
 
         if (biggestOffset <= startingOffset) {
             offsets.add(startingOffset)
@@ -86,7 +94,18 @@ class XyoIterableObject (private val item : ByteArray)  {
             i++
         }
 
-        throw XyoObjectIteratorException("Index out of range!")
+        throw XyoObjectIteratorException("Index out of range! Size $i, Index: $index. Value: ${item.toHexString()}")
+    }
+
+    private fun ByteArray.toHexString(): String {
+        val builder = StringBuilder()
+        val it = this.iterator()
+        builder.append("0x")
+        while (it.hasNext()) {
+            builder.append(String.format("%02X", it.next()))
+        }
+
+        return builder.toString()
     }
 
     operator fun get(type: Byte): Array<ByteArray> {
@@ -119,7 +138,7 @@ class XyoIterableObject (private val item : ByteArray)  {
             4 -> return buffer.getInt(0)
         }
 
-        throw Exception("Stub for long size")
+        throw Exception("Stub for long size. Value: ${item.toHexString()}")
     }
 
     /**
@@ -131,7 +150,7 @@ class XyoIterableObject (private val item : ByteArray)  {
 
     private fun checkIndex (index: Int) {
         if (index > item.size) {
-            throw XyoObjectIteratorException("Out of size!")
+            throw XyoObjectIteratorException("Out of size. Value: ${item.toHexString()}")
         }
     }
 
@@ -165,14 +184,16 @@ class XyoIterableObject (private val item : ByteArray)  {
         val totalSize = readSizeOfObject(setHeader.sizeIdentifier, 2)
 
         if ((totalSize + 2) != item.size) {
-            throw XyoObjectIteratorException("Array size does not equal header size.")
+            throw XyoObjectIteratorException("Array size does not equal header size. Header size: " +
+                    "$totalSize, Expected: ${item.size - 2}. Value: ${item.toHexString()}")
         }
 
         if (!setHeader.isIterable) {
-            throw XyoObjectIteratorException("Can not iterate on object that is not iterable.")
+            throw XyoObjectIteratorException("Can not iterate on object that is not iterable. Header " +
+                    "${setHeader.header[0]}, ${setHeader.header[1]}. Value: ${item.toHexString()}")
         }
 
-        if (setHeader.isTyped) {
+        if (setHeader.isTyped && totalSize != setHeader.sizeIdentifier) {
             globalSchema = getNextHeader(setHeader.sizeIdentifier + 2)
             return 4 + setHeader.sizeIdentifier
         }
