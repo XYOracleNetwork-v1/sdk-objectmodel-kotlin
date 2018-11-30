@@ -1,6 +1,6 @@
 package network.xyo.sdkobjectmodelkotlin.objects
 
-import network.xyo.sdkobjectmodelkotlin.objects.sets.XyoObjectIterator
+import network.xyo.sdkobjectmodelkotlin.objects.sets.XyoIterableObject
 import network.xyo.sdkobjectmodelkotlin.schema.XyoObjectSchema
 import org.json.JSONArray
 import org.json.JSONObject
@@ -54,7 +54,7 @@ object XyoObjectCreator {
         val rootJsonObject = JSONArray()
 
         if (itemHeader.isIterable) {
-            for (subItem in XyoObjectIterator(item)) {
+            for (subItem in XyoIterableObject(item).iterator) {
                 rootJsonObject.put(itemToJSON(subItem))
             }
         } else {
@@ -62,6 +62,47 @@ object XyoObjectCreator {
         }
 
         return rootJsonObject
+    }
+
+    fun itemToByteString(item : ByteArray) : String {
+        return itemToByteString(item, 0, true)
+    }
+
+    fun itemToByteString (item : ByteArray, depth: Int, hasHeader: Boolean) : String {
+        val itemHeader = XyoObjectSchema.createFromHeader(item.copyOfRange(0, 2))
+        val itemSize = item.copyOfRange(2, 2 + itemHeader.sizeIdentifier)
+        val itemValue = XyoObjectCreator.getObjectValue(item)
+
+        val rootString = StringBuilder()
+
+        if (hasHeader) {
+            rootString.append(appendDepthToStringBuilder(depth, itemHeader.header.toHexString()))
+        }
+
+        rootString.append(appendDepthToStringBuilder(depth, itemSize.toHexString()))
+
+
+        if (itemHeader.isIterable) {
+            for (subItem in XyoIterableObject(item).iterator) {
+                rootString.append(itemToByteString(subItem, depth+1, !itemHeader.isTyped))
+            }
+        } else {
+            rootString.append(appendDepthToStringBuilder(depth, itemValue.toHexString()))
+        }
+
+        return rootString.toString()
+    }
+
+    private fun appendDepthToStringBuilder (depth : Int, value : String) : String {
+        val builder = StringBuffer()
+
+        for (i in 1..depth) {
+            builder.append("|   ")
+        }
+
+        builder.append(value  + "\n")
+
+        return builder.toString()
     }
 
     private fun ByteArray.toHexString(): String {

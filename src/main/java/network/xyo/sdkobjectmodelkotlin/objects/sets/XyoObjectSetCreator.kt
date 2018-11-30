@@ -33,6 +33,20 @@ object XyoObjectSetCreator {
         return XyoObjectCreator.createObject(schema, buffer.array())
     }
 
+    fun convertObjectsToType (array : Array<ByteArray>, type: XyoObjectSchema) : Array<ByteArray> {
+        val newValues = ArrayList<ByteArray>()
+
+        for (value in array) {
+            if (value[1] != type.id) {
+                throw XyoObjectExceotion("Can not convert types! ${value[1]}, ${type.id}")
+            }
+
+            newValues.add(XyoObjectCreator.createObject(type, XyoObjectCreator.getObjectValue(value)))
+        }
+
+        return newValues.toTypedArray()
+    }
+
     /**
      * Creates an typed array. (An array that can only contain a single type of object).
      */
@@ -42,6 +56,10 @@ object XyoObjectSetCreator {
         }
 
         var totalSize = 2
+
+        if (values.isEmpty()) {
+            totalSize = 0
+        }
 
         for (item in values) {
             totalSize += item.size - 2
