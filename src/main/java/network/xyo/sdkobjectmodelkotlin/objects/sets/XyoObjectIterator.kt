@@ -2,6 +2,7 @@ package network.xyo.sdkobjectmodelkotlin.objects.sets
 
 import network.xyo.sdkobjectmodelkotlin.exceptions.XyoObjectExceotion
 import network.xyo.sdkobjectmodelkotlin.exceptions.XyoObjectIteratorException
+import network.xyo.sdkobjectmodelkotlin.objects.toHexString
 import network.xyo.sdkobjectmodelkotlin.schema.XyoObjectSchema
 import java.lang.StringBuilder
 import java.nio.ByteBuffer
@@ -95,17 +96,6 @@ class XyoIterableObject (private val item : ByteArray)  {
         }
 
         throw XyoObjectIteratorException("Index out of range! Size $i, Index: $index. Value: ${item.toHexString()}")
-    }
-
-    private fun ByteArray.toHexString(): String {
-        val builder = StringBuilder()
-        val it = this.iterator()
-        builder.append("0x")
-        while (it.hasNext()) {
-            builder.append(String.format("%02X", it.next()))
-        }
-
-        return builder.toString()
     }
 
     operator fun get(type: Byte): Array<ByteArray> {
