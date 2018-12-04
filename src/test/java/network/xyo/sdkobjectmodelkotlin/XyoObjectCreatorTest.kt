@@ -1,6 +1,7 @@
 package network.xyo.sdkobjectmodelkotlin
 
 import network.xyo.sdkobjectmodelkotlin.buffer.XyoBuff
+import network.xyo.sdkobjectmodelkotlin.objects.XyoNumberEncoder
 import network.xyo.sdkobjectmodelkotlin.schema.XyoObjectSchema
 import org.junit.Assert
 import org.junit.Test
@@ -12,21 +13,21 @@ class XyoObjectCreatorTest {
     fun testSmartSizeForByte () {
         val sizeOfImageryObject = 254
         val bestWayToEncodeSize = 1
-        Assert.assertEquals(bestWayToEncodeSize, XyoBuff.getSmartSize(sizeOfImageryObject))
+        Assert.assertEquals(bestWayToEncodeSize, XyoNumberEncoder.getSmartSize(sizeOfImageryObject))
     }
 
     @Test
     fun testSmartSizeForShort () {
         val sizeOfImageryObject = 64_000
         val bestWayToEncodeSize = 2
-        Assert.assertEquals(bestWayToEncodeSize, XyoBuff.getSmartSize(sizeOfImageryObject))
+        Assert.assertEquals(bestWayToEncodeSize, XyoNumberEncoder.getSmartSize(sizeOfImageryObject))
     }
 
     @Test
     fun testSmartSizeForInt () {
         val sizeOfImageryObject = 66_000
         val bestWayToEncodeSize = 4
-        Assert.assertEquals(bestWayToEncodeSize, XyoBuff.getSmartSize(sizeOfImageryObject))
+        Assert.assertEquals(bestWayToEncodeSize, XyoNumberEncoder.getSmartSize(sizeOfImageryObject))
     }
 
     @Test
