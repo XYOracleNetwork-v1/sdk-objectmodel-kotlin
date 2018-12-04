@@ -10,7 +10,6 @@ import kotlin.experimental.or
  * A information class used to represent all identifying factors in the XyoObjectModel. This is typically represented
  * as the first two bytes in an object (The encoding catalogue and the ID). You can create a XyoObjectSchema from an
  * objects's header (first 2 bytes), or from a JSON schema.
- *
  */
 abstract class XyoObjectSchema {
     /**
@@ -19,8 +18,8 @@ abstract class XyoObjectSchema {
     abstract val id : Byte
 
     /**
-     * The size of the size indicator. This value can be 1, 2, 4, 8, or null. If the value is null, this value will be
-     * chosen to optimised the size of the object. If the value is not 1, 2, 4, 8, or null, will through a
+     * The count of the count indicator. This value can be 1, 2, 4, 8, or null. If the value is null, this value will be
+     * chosen to optimised the count of the object. If the value is not 1, 2, 4, 8, or null, will through a
      * XyoSchemaException.
      */
     abstract val sizeIdentifier : Int
@@ -118,32 +117,43 @@ abstract class XyoObjectSchema {
 
     companion object {
 
-        //  This method creates a schema object with given header.
-        fun createFromHeader (byteArray: ByteArray) : XyoObjectSchema {
-            if (byteArray.size != 2) {
-                throw XyoSchemaException("Expected header size to be 2, saw: ${byteArray.size}")
+        /**
+         * Creates a XyoObjectSchema from a given header. Note that all combinations of 2 bytes are valid, therefore
+         * make sure that the header being passed to the function is the correct header. The header must be 2 bytes,
+         * or a XyoSchemaException will be thrown.
+         *
+         * @param byteArray The header of the item to create a schema from.
+         * @return A XyoObjectSchema of the schema of the Header.
+         * @throws XyoSchemaException When the header size is not 2.
+         */
+        fun createFromHeader (header: ByteArray) : XyoObjectSchema {
+            if (header.size != 2) {
+                throw XyoSchemaException("Expected header count to be 2, saw: ${header.size}")
             }
 
             return object : XyoObjectSchema() {
                 override val id: Byte
-                    get() = byteArray[1]
+                    get() = header[1]
 
                 override val isIterable: Boolean
-                    get() = readIsIterable(byteArray[0])
+                    get() = readIsIterable(header[0])
 
                 override val isTyped: Boolean
-                    get() = readIsTyped(byteArray[0])
+                    get() = readIsTyped(header[0])
 
                 override val meta: XyoObjectSchemaMeta? = null
 
                 override val sizeIdentifier: Int
-                    get() = readSizeIdentifierFromEncodingCatalogue(byteArray[0])
+                    get() = readSizeIdentifierFromEncodingCatalogue(header[0])
             }
         }
 
 
         /**
          * Checks if the encodingCatalogue is typed. The 3rd most significant bit.
+         *
+         * @param encodingCatalogue The encodingCatalogue of the header. (The first byte)
+         * @return True if the encodingCatalogue is typed
          */
         private fun readIsTyped (encodingCatalogue: Byte) : Boolean {
             return (encodingCatalogue and 0x10).toInt() != 0
@@ -151,13 +161,19 @@ abstract class XyoObjectSchema {
 
         /**
          * Checks if the object is iterable. The 4th most significant bit.
+         *
+         * @param encodingCatalogue The encodingCatalogue of the header. (The first byte)
+         * @return True if the encodingCatalogue is iterable.
          */
         private fun readIsIterable (encodingCatalogue: Byte) : Boolean {
            return (encodingCatalogue and 0x20).toInt() != 0
         }
 
         /**
-         * Checks the size identifier from the encodingCatalogue. The 2 most significant bits.
+         * Checks the count identifier from the encodingCatalogue. The 2 most significant bits.
+         *
+         * @param encodingCatalogue The encodingCatalogue of the header. (The first byte)
+         * @return [1, 2, 4, or 8] depending on the encoding catalogue.
          */
         private fun readSizeIdentifierFromEncodingCatalogue (encodingCatalogue: Byte) : Int {
 
@@ -183,7 +199,11 @@ abstract class XyoObjectSchema {
         }
 
         /**
-         * Creates a schema from a json schema.
+         * Creates a schema from a json schema. For example schemas of objects please visit:
+         * https://github.com/XYOracleNetwork/spec-coreobjectmodel-tex
+         *
+         * @param string, The json schema of the schema.
+         * @return The XyoObjectSchema representing the JSON schema.
          */
         fun fromJson(string: String) : XyoObjectSchema {
             val jsonObject = JSONObject(string)
@@ -203,7 +223,12 @@ abstract class XyoObjectSchema {
         }
 
         /**
-         * Gets the string encoded byte to a UByte
+         * Gets the string encoded byte to a Byte
+         *
+         * Example: "0x04" --> 4
+         *
+         * @param string string of the byte
+         * @return The value of the string bytes first element.
          */
         private fun stringToByte(string: String) : Byte {
             return BigInteger(string.removeRange(0, 2), 16).toByteArray()[0]
@@ -211,8 +236,11 @@ abstract class XyoObjectSchema {
 
         /**
          * Gets a schema meta object from a json object.
+         *
+         * @param jsonObject The meta JSON Object
+         * @return The XyoObjectSchemaMeta of the object from JSON
          */
-        private fun getMetaFromJsonObject (jsonObject: JSONObject) : XyoObjectSchemaMeta? {
+        private fun getMetaFromJsonObject (jsonObject: JSONObject) : XyoObjectSchemaMeta {
             return object : XyoObjectSchemaMeta() {
                 override val desc: String? = jsonObject["desc"] as String?
                 override val name: String? = jsonObject["name"] as String?

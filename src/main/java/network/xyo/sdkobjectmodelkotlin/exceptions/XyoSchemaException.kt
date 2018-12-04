@@ -2,5 +2,7 @@ package network.xyo.sdkobjectmodelkotlin.exceptions
 
 /**
  * An exception for schema relates issues.
+ *
+ * @property message The message of the exception.
  */
-class XyoSchemaException(message: String?) : XyoObjectExceotion(message)
+class XyoSchemaException(message: String?) : XyoObjectException(message)
