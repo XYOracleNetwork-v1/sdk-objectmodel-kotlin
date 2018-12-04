@@ -103,6 +103,14 @@ abstract class XyoIterableObject : XyoBuff() {
 
         biggestOffset = startingOffset + sizeOfObject + 2
         checkIndex(startingOffset + sizeOfObject + 2)
+
+        if (schemaOfItem.isIterable) {
+            return object : XyoIterableObject() {
+                override val allowedOffset: Int = startingOffset
+                override var item: ByteArray = this@XyoIterableObject.item
+            }
+        }
+
         return object : XyoBuff() {
             override val allowedOffset: Int = startingOffset
             override var item: ByteArray = this@XyoIterableObject.item
@@ -129,26 +137,27 @@ abstract class XyoIterableObject : XyoBuff() {
 
         biggestOffset = startingOffset + sizeOfObject
 
+        val buffer = ByteBuffer.allocate(sizeOfObject + 2)
+        checkIndex(startingOffset + sizeOfObject)
+        buffer.put(schemaOfItem.header)
+        buffer.put(item.copyOfRange(startingOffset, startingOffset + sizeOfObject))
+
+        if (schemaOfItem.isIterable) {
+            return object : XyoIterableObject() {
+                override val headerSize: Int = 0
+                override val allowedOffset: Int = startingOffset
+                override var item: ByteArray = this@XyoIterableObject.item
+                override val schema: XyoObjectSchema = schemaOfItem
+                override val bytesCopy: ByteArray = buffer.array()
+            }
+        }
+
         return object : XyoBuff() {
             override val headerSize: Int = 0
             override val allowedOffset: Int = startingOffset
             override var item: ByteArray = this@XyoIterableObject.item
             override val schema: XyoObjectSchema = schemaOfItem
-
-            override val bytesCopy: ByteArray
-                get() {
-                    val buffer = ByteBuffer.allocate(sizeOfObject + 2)
-                    checkIndex(startingOffset + sizeOfObject)
-                    buffer.put(schemaOfItem.header)
-                    buffer.put(item.copyOfRange(startingOffset, startingOffset + sizeOfObject))
-                    return buffer.array()
-                }
-
-            override val valueCopy: ByteArray
-                get() {
-                    return bytesCopy.copyOfRange(2, bytesCopy.size)
-                }
-
+            override val bytesCopy: ByteArray = buffer.array()
         }
     }
 

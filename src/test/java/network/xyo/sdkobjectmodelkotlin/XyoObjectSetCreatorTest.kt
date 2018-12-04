@@ -64,8 +64,6 @@ class XyoObjectSetCreatorTest {
 
         val createdSet = XyoIterableObject.createTypedIterableObject(setSchema, arrayOf(objectOne, objectTwo))
 
-
-        println(createdSet.bytesCopy.toHexString())
         Assert.assertArrayEquals(expectedSet, createdSet.bytesCopy)
     }
 
