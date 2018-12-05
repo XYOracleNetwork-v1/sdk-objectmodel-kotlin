@@ -47,7 +47,7 @@ abstract class XyoIterableObject : XyoBuff() {
     open val count : Int
         get() {
             readHeaderIfNeeded()
-            if (biggestOffset == item.size) {
+            if (biggestOffset == sizeBytes + 2) {
                 return offsets.size
             }
 
@@ -99,9 +99,9 @@ abstract class XyoIterableObject : XyoBuff() {
 
         if (biggestOffset <= startingOffset) {
             offsets.add(startingOffset)
+            biggestOffset = startingOffset + sizeOfObject + 2
         }
 
-        biggestOffset = startingOffset + sizeOfObject + 2
         checkIndex(startingOffset + sizeOfObject + 2)
 
         if (schemaOfItem.isIterable) {
@@ -116,6 +116,7 @@ abstract class XyoIterableObject : XyoBuff() {
             override var item: ByteArray = this@XyoIterableObject.item
         }
     }
+
 
     /**
      * Reads an item from an typed array the startingOffset.
@@ -133,9 +134,8 @@ abstract class XyoIterableObject : XyoBuff() {
 
         if (biggestOffset <= startingOffset) {
             offsets.add(startingOffset)
+            biggestOffset = startingOffset + sizeOfObject
         }
-
-        biggestOffset = startingOffset + sizeOfObject
 
         val buffer = ByteBuffer.allocate(sizeOfObject + 2)
         checkIndex(startingOffset + sizeOfObject)
@@ -205,7 +205,6 @@ abstract class XyoIterableObject : XyoBuff() {
 
         while (it.hasNext()) {
             val next = it.next()
-
             if (next.schema.id == type) {
                 itemsThatFollowTheType.add(next)
             }
