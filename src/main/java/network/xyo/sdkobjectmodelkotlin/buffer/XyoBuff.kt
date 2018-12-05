@@ -84,6 +84,18 @@ abstract class XyoBuff {
         throw XyoObjectException("Stub for long count. Value: ${item.toHexString()}")
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (other is XyoBuff) {
+            return other.bytesCopy.contentEquals(bytesCopy)
+        }
+
+        return false
+    }
+
+    override fun hashCode(): Int {
+        return bytesCopy.contentHashCode()
+    }
+
     companion object {
         /**
          * Creates a XyoBuff with a schema and a value.
