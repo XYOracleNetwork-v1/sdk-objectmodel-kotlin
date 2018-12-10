@@ -147,8 +147,8 @@ abstract class XyoIterableObject : XyoBuff() {
                 override val headerSize: Int = 0
                 override val allowedOffset: Int = startingOffset
                 override var item: ByteArray = this@XyoIterableObject.item
-                override val schema: XyoObjectSchema = schemaOfItem
                 override val bytesCopy: ByteArray = buffer.array()
+                override val schema: XyoObjectSchema = schemaOfItem
             }
         }
 
@@ -405,7 +405,6 @@ abstract class XyoIterableObject : XyoBuff() {
             return object : XyoIterableObject() {
                 override val allowedOffset: Int = 0
                 override var item: ByteArray = XyoBuff.getObjectEncoded(schema, buffer.array())
-                override val schema: XyoObjectSchema = schema
                 override val count: Int = values.count()
 
                 override val iterator: Iterator<XyoBuff>

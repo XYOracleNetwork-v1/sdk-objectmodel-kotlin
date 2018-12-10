@@ -98,6 +98,22 @@ abstract class XyoObjectSchema {
         }
 
     /**
+     * Converts the current schema to a new schema with a different size
+     *
+     * @param newSize The new size of the schema to create
+     * @return XyoObjectSchema With the new size
+     */
+    fun toNewSize (newSize : Int) : XyoObjectSchema {
+        return object : XyoObjectSchema() {
+            override val id: Byte = this@XyoObjectSchema.id
+            override val isIterable: Boolean = this@XyoObjectSchema.isIterable
+            override val isTyped: Boolean = this@XyoObjectSchema.isTyped
+            override val meta: XyoObjectSchemaMeta? = this@XyoObjectSchema.meta
+            override val sizeIdentifier: Int = newSize
+        }
+    }
+
+    /**
      * The first byte of the object. This value contains the sizeIdentifierByte, the iterableByte, the typedByte, and
      * four reserved bits (4 least significant bits).
      */
