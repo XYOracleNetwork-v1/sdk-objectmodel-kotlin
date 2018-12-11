@@ -31,7 +31,7 @@ abstract class XyoBuff {
      */
     open val schema : XyoObjectSchema
         get() {
-            return  XyoObjectSchema.createFromHeader(item.copyOfRange(allowedOffset, allowedOffset + headerSize))
+            return XyoObjectSchema.createFromHeader(item.copyOfRange(allowedOffset, allowedOffset + headerSize))
         }
 
     /**
@@ -84,6 +84,18 @@ abstract class XyoBuff {
         throw XyoObjectException("Stub for long count. Value: ${item.toHexString()}")
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (other is XyoBuff) {
+            return other.bytesCopy.contentEquals(bytesCopy)
+        }
+
+        return false
+    }
+
+    override fun hashCode(): Int {
+        return bytesCopy.contentHashCode()
+    }
+
     companion object {
         /**
          * Creates a XyoBuff with a schema and a value.
@@ -93,7 +105,6 @@ abstract class XyoBuff {
          */
         fun newInstance (schema : XyoObjectSchema, value : ByteArray) : XyoBuff {
             return object : XyoBuff() {
-                override val schema: XyoObjectSchema = schema
                 override var item: ByteArray = getObjectEncoded(schema, value)
                 override val valueCopy: ByteArray = value
                 override val allowedOffset: Int = 0
