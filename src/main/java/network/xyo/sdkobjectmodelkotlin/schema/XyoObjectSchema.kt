@@ -195,11 +195,12 @@ abstract class XyoObjectSchema {
 
             // masking the first two bits to get the result
             // 0xC0 == 11000000
+
             if (encodingCatalogue and 0xC0.toByte() == 0x00.toByte()) {
                 return 1
             }
 
-            if (encodingCatalogue and 0xC0 .toByte() == 0x40.toByte()) {
+            if (encodingCatalogue and 0xC0.toByte() == 0x40.toByte()) {
                 return 2
             }
 
@@ -207,8 +208,7 @@ abstract class XyoObjectSchema {
                 return 4
             }
 
-            if (encodingCatalogue and 0xC0.toByte() == 0xC0.toByte()) {
-                return 8
+            if (encodingCatalogue and 0xC0.toByte() == 0xC0.toByte()) { return 8
             }
 
             throw XyoSchemaException("Invalid Size: ${encodingCatalogue.toString(2)}")

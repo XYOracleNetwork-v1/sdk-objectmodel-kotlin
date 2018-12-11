@@ -18,24 +18,12 @@ abstract class XyoIterableObject : XyoBuff() {
     private var globalSchema : XyoObjectSchema? = null
 
     /**
-     * The largest offset known currently. This is used so the array is not iterated over many times.
-     */
-    private var biggestOffset : Int = 0
-
-    /**
-     * An array of the current offsets where items lie (a table of contents from index to offset for the item at that
-     * index.)
-     */
-    private val offsets = ArrayList<Int>()
-
-    /**
      * Gets an instance of a new iterator to illiterate over the set.
      *
      * @throws XyoObjectIteratorException If the bytes are malformed.
      */
     open val iterator : Iterator<XyoBuff>
         get() {
-            readHeaderIfNeeded()
             return XyoObjectIterator(readOwnHeader())
         }
 
@@ -46,27 +34,16 @@ abstract class XyoIterableObject : XyoBuff() {
      */
     open val count : Int
         get() {
-            readHeaderIfNeeded()
-            if (biggestOffset == sizeBytes + 2) {
-                return offsets.size
+
+            val sizeIt = iterator
+            var i = 0
+            while (sizeIt.hasNext()) {
+                i++
+                sizeIt.next()
             }
-
-            val sizeIt = XyoObjectIterator(biggestOffset)
-            while (sizeIt.hasNext()) {sizeIt.next()}
-            return offsets.size
+            return i
         }
 
-
-    /**
-     * Reads the current header of the array if the global offset is 0.
-     *
-     * @throws XyoObjectIteratorException If the bytes are malformed.
-     */
-    private fun readHeaderIfNeeded () {
-        if (biggestOffset == 0) {
-            biggestOffset = readOwnHeader()
-        }
-    }
 
     /**
      * Reads the current item at an offset.
@@ -97,11 +74,6 @@ abstract class XyoIterableObject : XyoBuff() {
             throw XyoObjectIteratorException("Size can not be 0. Value: ${item.toHexString()}")
         }
 
-        if (biggestOffset <= startingOffset) {
-            offsets.add(startingOffset)
-            biggestOffset = startingOffset + sizeOfObject + 2
-        }
-
         checkIndex(startingOffset + sizeOfObject + 2)
 
         if (schemaOfItem.isIterable) {
@@ -130,11 +102,6 @@ abstract class XyoIterableObject : XyoBuff() {
 
         if (sizeOfObject == 0) {
             throw XyoObjectIteratorException("Size can not be 0. Value: ${item.toHexString()}")
-        }
-
-        if (biggestOffset <= startingOffset) {
-            offsets.add(startingOffset)
-            biggestOffset = startingOffset + sizeOfObject
         }
 
         val buffer = ByteBuffer.allocate(sizeOfObject + 2)
@@ -169,13 +136,8 @@ abstract class XyoIterableObject : XyoBuff() {
      * @throws XyoObjectIteratorException if the bytes are malformed or if the index is out of range.
      */
     open operator fun get(index: Int): XyoBuff {
-        readHeaderIfNeeded()
-        if (index < offsets.size) {
-            return readItemAtOffset(offsets[index])
-        }
-
-        val it = XyoObjectIterator(biggestOffset)
-        var i = offsets.size
+        val it = iterator
+        var i = 0
 
         while (it.hasNext()) {
             val item = it.next()
@@ -199,8 +161,7 @@ abstract class XyoIterableObject : XyoBuff() {
      * @throws XyoObjectIteratorException if the bytes are malformed.
      */
     open operator fun get(type: Byte): Array<XyoBuff> {
-        readHeaderIfNeeded()
-        val it = XyoObjectIterator(readOwnHeader())
+        val it = iterator
         val itemsThatFollowTheType = ArrayList<XyoBuff>()
 
         while (it.hasNext()) {
