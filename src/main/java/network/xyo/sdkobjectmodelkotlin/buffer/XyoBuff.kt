@@ -75,6 +75,9 @@ abstract class XyoBuff {
         val buffer = ByteBuffer.allocate(sizeToReadForSize)
         buffer.put(item.copyOfRange(offset, offset + sizeToReadForSize))
 
+//        println(offset)
+//        println(item.copyOfRange(offset, offset + sizeToReadForSize).toHexString())
+
         when (sizeToReadForSize) {
             1 -> return buffer[0].toInt() and 0xFF
             2 -> return buffer.getShort(0).toInt() and 0xFFFF
@@ -131,9 +134,11 @@ abstract class XyoBuff {
          * @param value The value of the XyoBuff to create. This does NOT include size.
          */
         fun getObjectEncoded (schema: XyoObjectSchema, value: ByteArray) : ByteArray {
-            val buffer = ByteBuffer.allocate(value.size + schema.sizeIdentifier + 2)
-            buffer.put(schema.header)
-            buffer.put(XyoNumberEncoder.createSize(value.size, schema.sizeIdentifier))
+            val newSchema = schema.toNewSize(XyoNumberEncoder.getSmartSize(value.size))
+
+            val buffer = ByteBuffer.allocate(value.size + newSchema.sizeIdentifier + 2)
+            buffer.put(newSchema.header)
+            buffer.put(XyoNumberEncoder.createSize(value.size, newSchema.sizeIdentifier))
             buffer.put(value)
             return buffer.array()
         }
