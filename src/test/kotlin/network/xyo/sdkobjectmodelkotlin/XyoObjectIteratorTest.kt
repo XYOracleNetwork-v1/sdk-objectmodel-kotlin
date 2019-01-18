@@ -4,6 +4,7 @@ import network.xyo.sdkobjectmodelkotlin.exceptions.XyoObjectIteratorException
 import network.xyo.sdkobjectmodelkotlin.objects.XyoIterableObject
 import org.junit.Assert
 import org.junit.Test
+import java.math.BigInteger
 
 class XyoObjectIteratorTest  {
 
@@ -79,6 +80,20 @@ class XyoObjectIteratorTest  {
             val iterator = object : XyoIterableObject() {
                 override val allowedOffset: Int = 0
                 override var item: ByteArray = byteArrayOf(0x20, 0x41, 0x07, 0x00, 0x44, 0x02, 0x13, 0x02, 0x37)
+            }.iterator
+
+            for (item in iterator) { }
+
+            throw Exception("Expected XyoObjectIteratorException to be thrown!")
+        } catch (e : XyoObjectIteratorException) { }
+    }
+
+    @Test
+    fun testCheckHeaderSize () {
+        try {
+            val iterator = object : XyoIterableObject() {
+                override val allowedOffset: Int = 0
+                override var item: ByteArray = BigInteger("601800526017004D201A49000B460000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040B030001030307", 16).toByteArray().copyOfRange(1, 84)
             }.iterator
 
             for (item in iterator) { }

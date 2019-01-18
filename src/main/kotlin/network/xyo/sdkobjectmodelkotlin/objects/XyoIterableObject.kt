@@ -180,6 +180,7 @@ abstract class XyoIterableObject : XyoBuff() {
      * @param offset The offset at which to read the header from.
      */
     private fun getNextHeader (offset : Int) : XyoObjectSchema {
+        checkIndex(offset + 2)
         return  XyoObjectSchema.createFromHeader(item.copyOfRange(offset, offset + 2))
     }
 
