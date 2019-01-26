@@ -8,8 +8,8 @@
 
 | Branches        | Status           |
 | ------------- |:-------------:|
-| Master      | [![](https://circleci.com/gh/XYOracleNetwork/sdk-objectmodel-kotlin.svg?style=shield)](https://circleci.com/gh/XYOracleNetwork/sdk-objectmodel-kotlin) |
-| Develop      | [![](https://circleci.com/gh/XYOracleNetwork/sdk-objectmodel-kotlin/tree/develop.svg?style=shield)](https://circleci.com/gh/XYOracleNetwork/sdk-objectmodel-kotlin/tree/develop)      |
+| Master      | [![Build Status](https://travis-ci.org/XYOracleNetwork/sdk-objectmodel-kotlin.svg?branch=master)](https://travis-ci.org/XYOracleNetwork/sdk-objectmodel-kotlin) |
+| Develop      | [![Build Status](https://travis-ci.org/XYOracleNetwork/sdk-objectmodel-kotlin.svg?branch=develop)](https://travis-ci.org/XYOracleNetwork/sdk-objectmodel-kotlin)      |
 
 Implementation of the [XYO object model](https://github.com/XYOracleNetwork/spec-coreobjectmodel-tex/blob/new-scheme/tex/scheme.pdf) in kotlin.  
 
