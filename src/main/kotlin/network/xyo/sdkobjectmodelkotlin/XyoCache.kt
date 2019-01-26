@@ -51,20 +51,4 @@ class XyoCache<T> (private val itemToCache : XyoCacheAble<T>) {
     fun clear () {
         reference = null
     }
-
-    companion object {
-
-        @JvmStatic
-        fun main (args : Array<String>) {
-            val bytes =  DatatypeConverter.parseHexBinary(args[0])
-            println("Phrasing ${bytes.toHexString()}")
-
-            println(object : XyoIterableStructure() {
-                override val allowedOffset: Int
-                    get() = 0
-
-                override var item: ByteArray = bytes
-            })
-        }
-    }
 }
