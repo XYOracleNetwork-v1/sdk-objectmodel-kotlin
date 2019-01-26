@@ -152,37 +152,16 @@ abstract class XyoObjectSchema {
                     get() = header[1]
 
                 override val isIterable: Boolean
-                    get() = readIsIterable(header[0])
+                    get() = (header[0] and 0x20).toInt() != 0
 
                 override val isTyped: Boolean
-                    get() = readIsTyped(header[0])
+                    get() = (header[0] and 0x10).toInt() != 0
 
                 override val meta: XyoObjectSchemaMeta? = null
 
                 override val sizeIdentifier: Int
                     get() = readSizeIdentifierFromEncodingCatalogue(header[0])
             }
-        }
-
-
-        /**
-         * Checks if the encodingCatalogue is typed. The 3rd most significant bit.
-         *
-         * @param encodingCatalogue The encodingCatalogue of the header. (The first byte)
-         * @return True if the encodingCatalogue is typed
-         */
-        private fun readIsTyped (encodingCatalogue: Byte) : Boolean {
-            return (encodingCatalogue and 0x10).toInt() != 0
-        }
-
-        /**
-         * Checks if the object is iterable. The 4th most significant bit.
-         *
-         * @param encodingCatalogue The encodingCatalogue of the header. (The first byte)
-         * @return True if the encodingCatalogue is iterable.
-         */
-        private fun readIsIterable (encodingCatalogue: Byte) : Boolean {
-           return (encodingCatalogue and 0x20).toInt() != 0
         }
 
         /**
