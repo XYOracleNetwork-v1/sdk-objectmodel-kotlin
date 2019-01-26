@@ -9,7 +9,7 @@ import kotlin.experimental.or
 /**
  * A information class used to represent all identifying factors in the XyoObjectModel. This is typically represented
  * as the first two bytes in an object (The encoding catalogue and the ID). You can create a XyoObjectSchema from an
- * objects's header (first 2 bytes), or from a JSON schema.
+ * structure's header (first 2 bytes), or from a JSON schema.
  */
 abstract class XyoObjectSchema {
     /**
@@ -91,7 +91,7 @@ abstract class XyoObjectSchema {
     private val typedByte : Byte
         get() {
             if (isTyped) {
-                return (0x00.toByte() or 0x10.toByte())
+                return (0x10.toByte())
             }
 
             return 0x00.toByte()
@@ -208,46 +208,11 @@ abstract class XyoObjectSchema {
                 return 4
             }
 
-            if (encodingCatalogue and 0xC0.toByte() == 0xC0.toByte()) { return 8
+            if (encodingCatalogue and 0xC0.toByte() == 0xC0.toByte()) {
+                return 8
             }
 
             throw XyoSchemaException("Invalid Size: ${encodingCatalogue.toString(2)}")
-        }
-
-        /**
-         * Creates a schema from a json schema. For example schemas of objects please visit:
-         * https://github.com/XYOracleNetwork/spec-coreobjectmodel-tex
-         *
-         * @param string, The json schema of the schema.
-         * @return The XyoObjectSchema representing the JSON schema.
-         */
-        fun fromJson(string: String) : XyoObjectSchema {
-            val jsonObject = JSONObject(string)
-            val id = jsonObject["id"] as String
-            val sizeIdentifier = jsonObject["sizeIdentifier"] as Int
-            val isIterator = jsonObject["isIterable"] as Boolean
-            val isTyped = jsonObject["isTyped"] as Boolean
-            val meta = jsonObject["meta"] as JSONObject
-
-            return object : XyoObjectSchema() {
-                override val id: Byte = stringToByte(id)
-                override val isIterable: Boolean = isIterator
-                override val isTyped: Boolean = isTyped
-                override val meta: XyoObjectSchemaMeta? = getMetaFromJsonObject(meta)
-                override val sizeIdentifier: Int = sizeIdentifier
-            }
-        }
-
-        /**
-         * Gets the string encoded byte to a Byte
-         *
-         * Example: "0x04" --> 4
-         *
-         * @param string string of the byte
-         * @return The value of the string bytes first element.
-         */
-        private fun stringToByte(string: String) : Byte {
-            return BigInteger(string.removeRange(0, 2), 16).toByteArray()[0]
         }
 
         /**

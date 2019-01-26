@@ -1,11 +1,11 @@
 package network.xyo.sdkobjectmodelkotlin
 
-import network.xyo.sdkobjectmodelkotlin.buffer.XyoBuff
-import network.xyo.sdkobjectmodelkotlin.objects.XyoIterableObject
-import network.xyo.sdkobjectmodelkotlin.objects.toHexString
+import network.xyo.sdkobjectmodelkotlin.structure.XyoIterableStructure
 import network.xyo.sdkobjectmodelkotlin.schema.XyoObjectSchema
+import network.xyo.sdkobjectmodelkotlin.structure.XyoObjectStructure
 import org.junit.Assert
 import org.junit.Test
+import java.math.BigInteger
 
 class XyoObjectSetCreatorTest {
     private val objectOneSchema = object : XyoObjectSchema() {
@@ -34,10 +34,10 @@ class XyoObjectSetCreatorTest {
             override val sizeIdentifier: Int = 1
         }
 
-        val objectOne = XyoBuff.newInstance(objectOneSchema, byteArrayOf(0x13))
-        val objectTwo =  XyoBuff.newInstance(objectTwoSchema, byteArrayOf(0x37))
+        val objectOne = XyoObjectStructure.newInstance(objectOneSchema, byteArrayOf(0x13))
+        val objectTwo =  XyoObjectStructure.newInstance(objectTwoSchema, byteArrayOf(0x37))
         val expectedSet = byteArrayOf(0x20, 0x41, 0x09, 0x00, 0x44, 0x02, 0x13, 0x00, 0x42, 0x02, 0x37)
-        val createdSet = XyoIterableObject.createUntypedIterableObject(setSchema, arrayOf(objectOne, objectTwo))
+        val createdSet = XyoIterableStructure.createUntypedIterableObject(setSchema, arrayOf(objectOne, objectTwo))
 
         Assert.assertArrayEquals(expectedSet, createdSet.bytesCopy)
     }
@@ -52,8 +52,8 @@ class XyoObjectSetCreatorTest {
             override val sizeIdentifier: Int = 1
         }
 
-        val objectOne = XyoBuff.newInstance(objectOneSchema, byteArrayOf(0x13))
-        val objectTwo =  XyoBuff.newInstance(objectOneSchema, byteArrayOf(0x37))
+        val objectOne = XyoObjectStructure.newInstance(objectOneSchema, byteArrayOf(0x13))
+        val objectTwo =  XyoObjectStructure.newInstance(objectOneSchema, byteArrayOf(0x37))
         val expectedSet = byteArrayOf(
                 0x30, 0x41,
                 0x07,
@@ -62,24 +62,8 @@ class XyoObjectSetCreatorTest {
                 0x02, 0x37
         )
 
-        val createdSet = XyoIterableObject.createTypedIterableObject(setSchema, arrayOf(objectOne, objectTwo))
+        val createdSet = XyoIterableStructure.createTypedIterableObject(setSchema, arrayOf(objectOne, objectTwo))
 
         Assert.assertArrayEquals(expectedSet, createdSet.bytesCopy)
-    }
-
-    @Test
-    fun addToUntypedArray () {
-//        val originalSet = byteArrayOf(0x20, 0x41, 0x09, 0x00, 0x44, 0x02, 0x13, 0x00, 0x42, 0x02, 0x37)
-//        val addedSet = XyoObjectSetCreator.addToIterableObject(originalSet, originalSet)
-//        Assert.assertArrayEquals(originalSet, XyoIterableObject(addedSet, 0)[2])
-    }
-
-    @Test
-    fun addToTypedArray () {
-//        val originalSet = byteArrayOf(0x30, 0x41, 0x07, 0x00, 0x44, 0x02, 0x13, 0x02, 0x37)
-//        val itemToAdd = byteArrayOf(0x00, 0x44, 0x02, 0x18)
-//        val addedSet = XyoObjectSetCreator.addToIterableObject(itemToAdd, originalSet)
-//        Assert.assertArrayEquals(byteArrayOf(0x30, 0x41, 0x09, 0x00, 0x44, 0x02, 0x13, 0x02, 0x37, 0x02, 0x18), addedSet)
-//        Assert.assertArrayEquals(itemToAdd, XyoIterableObject(addedSet, 0)[2])
     }
 }

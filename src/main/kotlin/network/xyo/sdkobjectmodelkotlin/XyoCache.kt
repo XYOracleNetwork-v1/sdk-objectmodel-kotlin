@@ -1,6 +1,8 @@
 package network.xyo.sdkobjectmodelkotlin
 
+import network.xyo.sdkobjectmodelkotlin.structure.XyoIterableStructure
 import java.lang.ref.WeakReference
+import javax.xml.bind.DatatypeConverter
 
 /**
  * A simple caching file that used weak references to cache any item.
@@ -48,5 +50,21 @@ class XyoCache<T> (private val itemToCache : XyoCacheAble<T>) {
      */
     fun clear () {
         reference = null
+    }
+
+    companion object {
+
+        @JvmStatic
+        fun main (args : Array<String>) {
+            val bytes =  DatatypeConverter.parseHexBinary(args[0])
+            println("Phrasing ${bytes.toHexString()}")
+
+            println(object : XyoIterableStructure() {
+                override val allowedOffset: Int
+                    get() = 0
+
+                override var item: ByteArray = bytes
+            })
+        }
     }
 }

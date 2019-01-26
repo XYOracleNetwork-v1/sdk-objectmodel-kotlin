@@ -1,4 +1,4 @@
-package network.xyo.sdkobjectmodelkotlin.objects
+package network.xyo.sdkobjectmodelkotlin
 
 import java.lang.StringBuilder
 
