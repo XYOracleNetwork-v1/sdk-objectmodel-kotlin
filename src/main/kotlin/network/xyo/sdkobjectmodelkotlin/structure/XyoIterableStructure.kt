@@ -10,7 +10,11 @@ import java.nio.ByteBuffer
 /**
  * An Iterator for iterating over sets.
  */
-abstract class XyoIterableStructure : XyoObjectStructure() {
+open class XyoIterableStructure : XyoObjectStructure {
+
+    constructor (item: ByteArray, allowedOffset: Int) : super(item, allowedOffset)
+    constructor (item: ByteArray, allowedOffset: Int, headerSize: Int) : super(item, allowedOffset, headerSize)
+
     /**
      * The global schema of of the iterator. This value is null when iterating over an untyped set, and is not null
      * when iterating over a typed set.
@@ -77,16 +81,10 @@ abstract class XyoIterableStructure : XyoObjectStructure() {
         checkIndex(startingOffset + sizeOfObject + 2)
 
         if (schemaOfItem.isIterable) {
-            return object : XyoIterableStructure() {
-                override val allowedOffset: Int = startingOffset
-                override var item: ByteArray = this@XyoIterableStructure.item
-            }
+            return  XyoIterableStructure(this@XyoIterableStructure.item, startingOffset)
         }
 
-        return object : XyoObjectStructure() {
-            override val allowedOffset: Int = startingOffset
-            override var item: ByteArray = this@XyoIterableStructure.item
-        }
+        return  XyoObjectStructure(this@XyoIterableStructure.item, startingOffset)
     }
 
 
@@ -106,51 +104,15 @@ abstract class XyoIterableStructure : XyoObjectStructure() {
 
         val buffer = ByteBuffer.allocate(sizeOfObject + 2)
         checkIndex(startingOffset + sizeOfObject)
+
         buffer.put(schemaOfItem.header)
         buffer.put(item.copyOfRange(startingOffset, startingOffset + sizeOfObject))
 
         if (schemaOfItem.isIterable) {
-            return encodeTypedStructureIsIterable(startingOffset, buffer.array(), schemaOfItem)
+            return XyoIterableStructure(buffer.array(), 0)
         }
 
-        return encodeTypedStructureNotIterable(startingOffset, buffer.array(), schemaOfItem)
-    }
-
-
-    /**
-     * Encodes an item in a typed iterable structure as a iterable structure
-     *
-     * @param startingOffset The offset in the master structure
-     * @param bytes The encoded value of the item
-     * @param schema the schema of the item
-     * @return A XyoObjectStructure created from the offset
-     */
-    private fun encodeTypedStructureIsIterable (startingOffset: Int, bytes: ByteArray, schema: XyoObjectSchema) : XyoObjectStructure {
-        return object : XyoIterableStructure() {
-            override val headerSize: Int = 0
-            override val allowedOffset: Int = startingOffset
-            override var item: ByteArray = this@XyoIterableStructure.item
-            override val bytesCopy: ByteArray = bytes
-            override val schema: XyoObjectSchema = schema
-        }
-    }
-
-    /**
-     * Encodes an item in a typed iterable structure as a standalone structure
-     *
-     * @param startingOffset The offset in the master structure
-     * @param bytes The encoded value of the item
-     * @param schema the schema of the item
-     * @return A XyoObjectStructure created from the offset
-     */
-    private fun encodeTypedStructureNotIterable (startingOffset: Int, bytes: ByteArray, schema: XyoObjectSchema) : XyoObjectStructure {
-        return object : XyoObjectStructure() {
-            override val headerSize: Int = 0
-            override val allowedOffset: Int = startingOffset
-            override var item: ByteArray = this@XyoIterableStructure.item
-            override val bytesCopy: ByteArray = bytes
-            override val schema: XyoObjectSchema = schema
-        }
+        return  XyoObjectStructure(buffer.array(), 0)
     }
 
     /**
@@ -287,12 +249,7 @@ abstract class XyoIterableStructure : XyoObjectStructure() {
 
         if (schema.isIterable) {
             for (subItem in iterator) {
-                rootJsonObject.put(JSONArray(object : XyoIterableStructure() {
-                    override val allowedOffset: Int
-                        get() = 0
-
-                    override var item: ByteArray = subItem.bytesCopy
-                }.toString()))
+                rootJsonObject.put(JSONArray((XyoIterableStructure(subItem.bytesCopy, 0)).toString()))
             }
         } else {
             rootJsonObject.put(item.toHexString())
@@ -349,10 +306,7 @@ abstract class XyoIterableStructure : XyoObjectStructure() {
                 buffer.put(item.bytesCopy)
             }
 
-            return object : XyoIterableStructure() {
-                override val allowedOffset: Int = 0
-                override var item: ByteArray = XyoObjectStructure.newInstance(schema, buffer.array()).bytesCopy
-            }
+            return XyoIterableStructure(XyoObjectStructure.newInstance(schema, buffer.array()).bytesCopy, 0)
         }
 
         /**
@@ -387,30 +341,7 @@ abstract class XyoIterableStructure : XyoObjectStructure() {
                 }
             }
 
-            return createIterableStructureWithCache(values, buffer.array(), schema)
-        }
-
-        /**
-         * Creates a iterable structure with the values cached on this machine so the items do not need to be
-         * read evey time.
-         *
-         * @param values The elements in the array
-         * @param encoded The encoded typed array
-         * @return The cached typed iterable structure
-         */
-        private fun createIterableStructureWithCache(values : Array<XyoObjectStructure>, encoded : ByteArray, schema: XyoObjectSchema) : XyoIterableStructure {
-            return object : XyoIterableStructure() {
-                override val allowedOffset: Int = 0
-                override var item: ByteArray = XyoObjectStructure.getObjectEncoded(schema, encoded)
-                override val count: Int = values.count()
-
-                override val iterator: Iterator<XyoObjectStructure>
-                    get() = values.iterator()
-
-                override fun get(index: Int): XyoObjectStructure {
-                    return values[index]
-                }
-            }
+            return XyoIterableStructure(XyoObjectStructure.getObjectEncoded(schema, buffer.array()), 0)
         }
     }
 }

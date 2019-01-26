@@ -10,10 +10,7 @@ class XyoObjectIteratorTest  {
 
     @Test
     fun testObjectIteratorUntyped () {
-        val iterator = object : XyoIterableStructure() {
-            override val allowedOffset: Int = 0
-            override var item: ByteArray = byteArrayOf(0x20, 0x41, 0x09, 0x00, 0x44, 0x02, 0x14, 0x00, 0x42, 0x02, 0x37)
-        }.iterator
+        val iterator = XyoIterableStructure(byteArrayOf(0x20, 0x41, 0x09, 0x00, 0x44, 0x02, 0x14, 0x00, 0x42, 0x02, 0x37), 0).iterator
         var index = 0
 
         while (iterator.hasNext()) {
@@ -33,10 +30,7 @@ class XyoObjectIteratorTest  {
     @Test
     fun testObjectIteratorTyped () {
 
-        val iterator = object : XyoIterableStructure() {
-            override val allowedOffset: Int = 0
-            override var item: ByteArray = byteArrayOf(0x30, 0x41, 0x07, 0x00, 0x44, 0x02, 0x13, 0x02, 0x37)
-        }.iterator
+        val iterator = XyoIterableStructure( byteArrayOf(0x30, 0x41, 0x07, 0x00, 0x44, 0x02, 0x13, 0x02, 0x37), 0).iterator
         var index = 0
 
         while (iterator.hasNext()) {
@@ -55,10 +49,7 @@ class XyoObjectIteratorTest  {
 
     @Test
     fun testGetAtIndex () {
-        val iterator = object : XyoIterableStructure() {
-            override val allowedOffset: Int = 0
-            override var item: ByteArray = byteArrayOf(0x30, 0x41, 0x07, 0x00, 0x44, 0x02, 0x13, 0x02, 0x37)
-        }
+        val iterator = XyoIterableStructure(byteArrayOf(0x30, 0x41, 0x07, 0x00, 0x44, 0x02, 0x13, 0x02, 0x37), 0)
 
         Assert.assertArrayEquals(byteArrayOf(0x00, 0x44, 0x02, 0x13), iterator[0].bytesCopy)
         Assert.assertArrayEquals(byteArrayOf(0x00, 0x44, 0x02, 0x37), iterator[1].bytesCopy)
@@ -66,10 +57,7 @@ class XyoObjectIteratorTest  {
 
     @Test
     fun testGetSize () {
-        val iterator = object : XyoIterableStructure() {
-            override val allowedOffset: Int = 0
-            override var item: ByteArray = byteArrayOf(0x30, 0x41, 0x07, 0x00, 0x44, 0x02, 0x13, 0x02, 0x37)
-        }
+        val iterator = XyoIterableStructure(byteArrayOf(0x30, 0x41, 0x07, 0x00, 0x44, 0x02, 0x13, 0x02, 0x37), 0)
 
         Assert.assertEquals(2, iterator.count)
     }
@@ -77,10 +65,7 @@ class XyoObjectIteratorTest  {
     @Test
     fun testWrongTypes () {
         try {
-            val iterator = object : XyoIterableStructure() {
-                override val allowedOffset: Int = 0
-                override var item: ByteArray = byteArrayOf(0x20, 0x41, 0x07, 0x00, 0x44, 0x02, 0x13, 0x02, 0x37)
-            }.iterator
+            val iterator = XyoIterableStructure(byteArrayOf(0x20, 0x41, 0x07, 0x00, 0x44, 0x02, 0x13, 0x02, 0x37), 0).iterator
 
             for (item in iterator) { }
 
@@ -91,10 +76,7 @@ class XyoObjectIteratorTest  {
     @Test
     fun testCheckHeaderSize () {
         try {
-            val iterator = object : XyoIterableStructure() {
-                override val allowedOffset: Int = 0
-                override var item: ByteArray = BigInteger("601800526017004D201A49000B460000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040B030001030307", 16).toByteArray().copyOfRange(1, 84)
-            }.iterator
+            val iterator = XyoIterableStructure(BigInteger("601800526017004D201A49000B460000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040B030001030307", 16).toByteArray().copyOfRange(1, 84), 0).iterator
 
             for (item in iterator) { }
 

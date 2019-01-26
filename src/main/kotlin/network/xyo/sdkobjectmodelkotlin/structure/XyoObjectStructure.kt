@@ -8,22 +8,37 @@ import java.nio.*
 /**
  * A base class for <i>XyoObjects</i>. This is used for obtaining the schema, value, and size of the item.
  */
-abstract class XyoObjectStructure {
+open class XyoObjectStructure {
+
+    constructor (item: ByteArray, allowedOffset: Int) {
+        this.item = item
+        this.allowedOffset = allowedOffset
+    }
+
+    constructor (item: ByteArray, allowedOffset: Int, headerSize: Int) {
+        this.item = item
+        this.allowedOffset = allowedOffset
+        this.headerSize = headerSize
+    }
+
+
     /**
      * The primary data input for the XyoObjectStructure. This buffer will not be read before the allowedOffset.
      */
-    protected abstract var item : ByteArray
+    var item : ByteArray
+
+    /**
+     * The starting offset of where to read. This buffer will not be read past this buffer.
+     */
+    var allowedOffset : Int
 
     /**
      * The sizes of the headers to read. This should align with XyoObjectSchema. This value should be set to 0 when
      * dealing with typed elements in a typed array.
      */
-    protected open val headerSize : Int = 2
+    private var headerSize : Int = 2
 
-    /**
-     * The starting offset of where to read. This buffer will not be read past this buffer.
-     */
-    abstract val allowedOffset : Int
+
 
     /**
      * The XyoObjectSchema of the XyoObjectStructure
@@ -104,11 +119,7 @@ abstract class XyoObjectStructure {
          * @param value The value of the object to encode. This does NOT include size.
          */
         fun newInstance (schema : XyoObjectSchema, value : ByteArray) : XyoObjectStructure {
-            return object : XyoObjectStructure() {
-                override var item: ByteArray = getObjectEncoded(schema, value)
-                override val valueCopy: ByteArray = value
-                override val allowedOffset: Int = 0
-            }
+            return XyoObjectStructure(getObjectEncoded(schema, value), 0)
         }
 
         /**
@@ -118,10 +129,7 @@ abstract class XyoObjectStructure {
          * @return The represented XyoObjectStructure.
          */
         fun wrap (buff : ByteArray) : XyoObjectStructure {
-            return object : XyoObjectStructure() {
-                override val allowedOffset: Int = 0
-                override var item: ByteArray = buff
-            }
+            return XyoObjectStructure(buff, 0)
         }
 
         /**
