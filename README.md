@@ -11,7 +11,7 @@
 | Master      | [![Build Status](https://travis-ci.org/XYOracleNetwork/sdk-objectmodel-kotlin.svg?branch=master)](https://travis-ci.org/XYOracleNetwork/sdk-objectmodel-kotlin) |
 | Develop      | [![Build Status](https://travis-ci.org/XYOracleNetwork/sdk-objectmodel-kotlin.svg?branch=develop)](https://travis-ci.org/XYOracleNetwork/sdk-objectmodel-kotlin)      |
 
-Implementation of the [XYO object model](https://github.com/XYOracleNetwork/spec-coreobjectmodel-tex/blob/new-scheme/tex/scheme.pdf) in kotlin.  
+Implementation of the XYO object model in kotlin.  
 
 ## Building and Testing with Gralde
 
