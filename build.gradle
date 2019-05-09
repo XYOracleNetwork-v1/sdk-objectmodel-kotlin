@@ -1,6 +1,7 @@
 apply plugin: 'jacoco'
 apply plugin: 'kotlin'
 apply plugin: 'java'
+apply plugin: 'org.sonarqube'
 
 group 'com.github.XYOracleNetwork'
 
@@ -20,6 +21,7 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.11"
         classpath "com.android.tools.build:gradle:3.2.1"
         classpath "org.junit.platform:junit-platform-gradle-plugin:1.0.0-M4"
+        classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.7"
     }
 }
 
