@@ -3,7 +3,6 @@ package network.xyo.sdkobjectmodelkotlin
 import network.xyo.sdkobjectmodelkotlin.schema.XyoObjectSchema
 import org.junit.Assert
 import org.junit.Test
-import java.util.*
 
 @ExperimentalUnsignedTypes
 class XyoObjectSchemaTest {
@@ -76,6 +75,7 @@ class XyoObjectSchemaTest {
             override val meta: XyoObjectSchemaMeta? = null
         }.header
 
+
         Assert.assertEquals(2, XyoObjectSchema.createFromHeader(testHeader).sizeIdentifier)
     }
 
@@ -102,32 +102,9 @@ class XyoObjectSchemaTest {
             override val meta: XyoObjectSchemaMeta? = null
         }.header
 
+        println(testHeader.toHexString())
+
         Assert.assertEquals(8, XyoObjectSchema.createFromHeader(testHeader).sizeIdentifier)
-    }
-
-    @Test
-    fun testCreateFromSchema () {
-        val schema = XyoObjectSchema.fromJson("{\n" +
-                "\t\"id\": \"0x1b\",\n" +
-                "\t\"sizeIdentifier\": 1,\n" +
-                "\t\"isIterable\": false,\n" +
-                "\t\"isTyped\": false,\n" +
-                "\t\"meta\": {\n" +
-                "\t\t\"name\": \"Stub Signature.\",\n" +
-                "\t\t\"desc\": \"Stub Signature for testing.\",\n" +
-                "\t\t\"childs\": [\n" +
-                "\t\t\t\n" +
-                "\t\t]\n" +
-                "\t}\n" +
-                "}")
-
-
-        Assert.assertEquals(0x1b.toByte(), schema.id)
-        Assert.assertEquals(1, schema.sizeIdentifier)
-        Assert.assertFalse(schema.isIterable)
-        Assert.assertFalse(schema.isTyped)
-        Assert.assertEquals("Stub Signature.", schema.meta?.name)
-        Assert.assertEquals("Stub Signature for testing.", schema.meta?.desc)
     }
 
     @Test

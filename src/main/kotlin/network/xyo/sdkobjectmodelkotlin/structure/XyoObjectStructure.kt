@@ -1,33 +1,47 @@
-package network.xyo.sdkobjectmodelkotlin.buffer
+package network.xyo.sdkobjectmodelkotlin.structure
 
 import network.xyo.sdkobjectmodelkotlin.exceptions.XyoObjectException
-import network.xyo.sdkobjectmodelkotlin.objects.XyoNumberEncoder
-import network.xyo.sdkobjectmodelkotlin.objects.toHexString
 import network.xyo.sdkobjectmodelkotlin.schema.XyoObjectSchema
+import network.xyo.sdkobjectmodelkotlin.toHexString
 import java.nio.*
 
 /**
  * A base class for <i>XyoObjects</i>. This is used for obtaining the schema, value, and size of the item.
  */
-abstract class XyoBuff {
+open class XyoObjectStructure {
+
+    constructor (item: ByteArray, allowedOffset: Int) {
+        this.item = item
+        this.allowedOffset = allowedOffset
+    }
+
+    constructor (item: ByteArray, allowedOffset: Int, headerSize: Int) {
+        this.item = item
+        this.allowedOffset = allowedOffset
+        this.headerSize = headerSize
+    }
+
+
     /**
-     * The primary data input for the XyoBuff. This buffer will not be read before the allowedOffset.
+     * The primary data input for the XyoObjectStructure. This buffer will not be read before the allowedOffset.
      */
-    protected abstract var item : ByteArray
+    var item : ByteArray
+
+    /**
+     * The starting offset of where to read. This buffer will not be read past this buffer.
+     */
+    var allowedOffset : Int
 
     /**
      * The sizes of the headers to read. This should align with XyoObjectSchema. This value should be set to 0 when
      * dealing with typed elements in a typed array.
      */
-    protected open val headerSize : Int = 2
+    private var headerSize : Int = 2
+
+
 
     /**
-     * The starting offset of where to read. This buffer will not be read past this buffer.
-     */
-    abstract val allowedOffset : Int
-
-    /**
-     * The XyoObjectSchema of the XyoBuff
+     * The XyoObjectSchema of the XyoObjectStructure
      */
     open val schema : XyoObjectSchema
         get() {
@@ -75,8 +89,6 @@ abstract class XyoBuff {
         val buffer = ByteBuffer.allocate(sizeToReadForSize)
         buffer.put(item.copyOfRange(offset, offset + sizeToReadForSize))
 
-//        println(offset)
-//        println(item.copyOfRange(offset, offset + sizeToReadForSize).toHexString())
 
         when (sizeToReadForSize) {
             1 -> return buffer[0].toInt() and 0xFF
@@ -88,7 +100,7 @@ abstract class XyoBuff {
     }
 
     override fun equals(other: Any?): Boolean {
-        if (other is XyoBuff) {
+        if (other is XyoObjectStructure) {
             return other.bytesCopy.contentEquals(bytesCopy)
         }
 
@@ -101,37 +113,30 @@ abstract class XyoBuff {
 
     companion object {
         /**
-         * Creates a XyoBuff with a schema and a value.
+         * Creates a XyoObjectStructure with a schema and a value.
          *
          * @param schema The schema to create the object with.
          * @param value The value of the object to encode. This does NOT include size.
          */
-        fun newInstance (schema : XyoObjectSchema, value : ByteArray) : XyoBuff {
-            return object : XyoBuff() {
-                override var item: ByteArray = getObjectEncoded(schema, value)
-                override val valueCopy: ByteArray = value
-                override val allowedOffset: Int = 0
-            }
+        fun newInstance (schema : XyoObjectSchema, value : ByteArray) : XyoObjectStructure {
+            return XyoObjectStructure(getObjectEncoded(schema, value), 0)
         }
 
         /**
-         * Wraps a given XyoBuff in byte form and creates a XyoBuff.
+         * Wraps a given XyoObjectStructure in byte form and creates a XyoObjectStructure.
          *
-         * @param buff The encoded XyoBuffer, this value can be obtained from myBuff.bytesCopy
-         * @return The represented XyoBuff.
+         * @param buff The encoded XyoObjectStructure, this value can be obtained from myBuff.bytesCopy
+         * @return The represented XyoObjectStructure.
          */
-        fun wrap (buff : ByteArray) : XyoBuff {
-            return object : XyoBuff() {
-                override val allowedOffset: Int = 0
-                override var item: ByteArray = buff
-            }
+        fun wrap (buff : ByteArray) : XyoObjectStructure {
+            return XyoObjectStructure(buff, 0)
         }
 
         /**
-         * Encodes a XyoBuff given a value and schema.
+         * Encodes a XyoObjectStructure given a value and schema.
          *
-         * @param schema The schema of the XyoBuff to create.
-         * @param value The value of the XyoBuff to create. This does NOT include size.
+         * @param schema The schema of the XyoObjectStructure to create.
+         * @param value The value of the XyoObjectStructure to create. This does NOT include size.
          */
         fun getObjectEncoded (schema: XyoObjectSchema, value: ByteArray) : ByteArray {
             val newSchema = schema.toNewSize(XyoNumberEncoder.getSmartSize(value.size))

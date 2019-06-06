@@ -1,8 +1,8 @@
 package network.xyo.sdkobjectmodelkotlin
 
-import network.xyo.sdkobjectmodelkotlin.buffer.XyoBuff
-import network.xyo.sdkobjectmodelkotlin.objects.XyoNumberEncoder
+import network.xyo.sdkobjectmodelkotlin.structure.XyoNumberEncoder
 import network.xyo.sdkobjectmodelkotlin.schema.XyoObjectSchema
+import network.xyo.sdkobjectmodelkotlin.structure.XyoObjectStructure
 import org.junit.Assert
 import org.junit.Test
 
@@ -42,7 +42,7 @@ class XyoObjectCreatorTest {
 
         val value = byteArrayOf(0x13)
         val expectedObject = byteArrayOf(0x00, 0x44, 0x02, 0x13)
-        val createdObject = XyoBuff.getObjectEncoded(schema, value)
+        val createdObject = XyoObjectStructure.getObjectEncoded(schema, value)
 
         Assert.assertArrayEquals(expectedObject, createdObject)
     }
@@ -50,9 +50,7 @@ class XyoObjectCreatorTest {
     @Test
     fun getObjectValueTest () {
         val testObject = byteArrayOf(0x00, 0x44, 0x02, 0x13)
-        Assert.assertArrayEquals(byteArrayOf(0x13), object : XyoBuff() {
-            override val allowedOffset: Int = 0
-            override var item: ByteArray = testObject
-        }.valueCopy )
+        XyoObjectStructure(testObject, 0)
+        Assert.assertArrayEquals(byteArrayOf(0x13), XyoObjectStructure(testObject, 0).valueCopy)
     }
 }

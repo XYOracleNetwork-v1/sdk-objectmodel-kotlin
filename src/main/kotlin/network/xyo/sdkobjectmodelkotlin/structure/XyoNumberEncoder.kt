@@ -1,11 +1,10 @@
-package network.xyo.sdkobjectmodelkotlin.objects
+package network.xyo.sdkobjectmodelkotlin.structure
 
 import network.xyo.sdkobjectmodelkotlin.exceptions.XyoObjectException
-import network.xyo.sdkobjectmodelkotlin.schema.XyoObjectSchema
 import java.nio.ByteBuffer
 
 /**
- * A until object for encoding sizes of objects.
+ * A until object for encoding sizes of structure.
  */
 object XyoNumberEncoder {
 

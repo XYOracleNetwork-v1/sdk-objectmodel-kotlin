@@ -1,16 +1,20 @@
-package network.xyo.sdkobjectmodelkotlin.objects
+package network.xyo.sdkobjectmodelkotlin.structure
 
-import network.xyo.sdkobjectmodelkotlin.buffer.XyoBuff
 import network.xyo.sdkobjectmodelkotlin.exceptions.XyoObjectException
 import network.xyo.sdkobjectmodelkotlin.exceptions.XyoObjectIteratorException
 import network.xyo.sdkobjectmodelkotlin.schema.XyoObjectSchema
+import network.xyo.sdkobjectmodelkotlin.toHexString
 import org.json.JSONArray
 import java.nio.ByteBuffer
 
 /**
  * An Iterator for iterating over sets.
  */
-abstract class XyoIterableObject : XyoBuff() {
+open class XyoIterableStructure : XyoObjectStructure {
+
+    constructor (item: ByteArray, allowedOffset: Int) : super(item, allowedOffset)
+    constructor (item: ByteArray, allowedOffset: Int, headerSize: Int) : super(item, allowedOffset, headerSize)
+
     /**
      * The global schema of of the iterator. This value is null when iterating over an untyped set, and is not null
      * when iterating over a typed set.
@@ -22,7 +26,7 @@ abstract class XyoIterableObject : XyoBuff() {
      *
      * @throws XyoObjectIteratorException If the bytes are malformed.
      */
-    open val iterator : Iterator<XyoBuff>
+    open val iterator : Iterator<XyoObjectStructure>
         get() {
             return XyoObjectIterator(readOwnHeader())
         }
@@ -49,10 +53,10 @@ abstract class XyoIterableObject : XyoBuff() {
      * Reads the current item at an offset.
      *
      * @param startingOffset The offset at which to read an item from.
-     * @return The XyoBuff at that offset.
+     * @return The XyoObjectStructure at that offset.
      * @throws XyoObjectIteratorException If the bytes are malformed.
      */
-    private fun readItemAtOffset (startingOffset : Int) : XyoBuff {
+    private fun readItemAtOffset (startingOffset : Int) : XyoObjectStructure {
         if (globalSchema == null) {
             return readItemUntyped(startingOffset)
         }
@@ -65,7 +69,7 @@ abstract class XyoIterableObject : XyoBuff() {
      * @param startingOffset Where to read the item from.
      * @throws XyoObjectIteratorException If the bytes are malformed.
      */
-    private fun readItemUntyped (startingOffset: Int) : XyoBuff {
+    private fun readItemUntyped (startingOffset: Int) : XyoObjectStructure {
         val schemaOfItem = getNextHeader(startingOffset)
         checkIndex(startingOffset + 2 + schemaOfItem.sizeIdentifier)
         val sizeOfObject = readSizeOfObject(schemaOfItem.sizeIdentifier, startingOffset + 2)
@@ -77,16 +81,10 @@ abstract class XyoIterableObject : XyoBuff() {
         checkIndex(startingOffset + sizeOfObject + 2)
 
         if (schemaOfItem.isIterable) {
-            return object : XyoIterableObject() {
-                override val allowedOffset: Int = startingOffset
-                override var item: ByteArray = this@XyoIterableObject.item
-            }
+            return  XyoIterableStructure(this@XyoIterableStructure.item, startingOffset)
         }
 
-        return object : XyoBuff() {
-            override val allowedOffset: Int = startingOffset
-            override var item: ByteArray = this@XyoIterableObject.item
-        }
+        return  XyoObjectStructure(this@XyoIterableStructure.item, startingOffset)
     }
 
 
@@ -96,7 +94,7 @@ abstract class XyoIterableObject : XyoBuff() {
      * @param startingOffset Where to read the item from.
      * @throws XyoObjectIteratorException If the bytes are malformed.
      */
-    private fun readItemTyped (startingOffset: Int) : XyoBuff {
+    private fun readItemTyped (startingOffset: Int) : XyoObjectStructure {
         val schemaOfItem =  globalSchema ?: throw XyoObjectIteratorException("Global schema is null!")
         val sizeOfObject = readSizeOfObject(schemaOfItem.sizeIdentifier, startingOffset)
 
@@ -106,26 +104,15 @@ abstract class XyoIterableObject : XyoBuff() {
 
         val buffer = ByteBuffer.allocate(sizeOfObject + 2)
         checkIndex(startingOffset + sizeOfObject)
+
         buffer.put(schemaOfItem.header)
         buffer.put(item.copyOfRange(startingOffset, startingOffset + sizeOfObject))
 
         if (schemaOfItem.isIterable) {
-            return object : XyoIterableObject() {
-                override val headerSize: Int = 0
-                override val allowedOffset: Int = startingOffset
-                override var item: ByteArray = this@XyoIterableObject.item
-                override val bytesCopy: ByteArray = buffer.array()
-                override val schema: XyoObjectSchema = schemaOfItem
-            }
+            return XyoIterableStructure(buffer.array(), 0)
         }
 
-        return object : XyoBuff() {
-            override val headerSize: Int = 0
-            override val allowedOffset: Int = startingOffset
-            override var item: ByteArray = this@XyoIterableObject.item
-            override val schema: XyoObjectSchema = schemaOfItem
-            override val bytesCopy: ByteArray = buffer.array()
-        }
+        return  XyoObjectStructure(buffer.array(), 0)
     }
 
     /**
@@ -135,7 +122,7 @@ abstract class XyoIterableObject : XyoBuff() {
      * @return The item at that index.
      * @throws XyoObjectIteratorException if the bytes are malformed or if the index is out of range.
      */
-    open operator fun get(index: Int): XyoBuff {
+    open operator fun get(index: Int): XyoObjectStructure {
         val it = iterator
         var i = 0
 
@@ -160,9 +147,9 @@ abstract class XyoIterableObject : XyoBuff() {
      * @return An array of possible items that have that ID.
      * @throws XyoObjectIteratorException if the bytes are malformed.
      */
-    open operator fun get(type: Byte): Array<XyoBuff> {
+    open operator fun get(type: Byte): Array<XyoObjectStructure> {
         val it = iterator
-        val itemsThatFollowTheType = ArrayList<XyoBuff>()
+        val itemsThatFollowTheType = ArrayList<XyoObjectStructure>()
 
         while (it.hasNext()) {
             val next = it.next()
@@ -180,6 +167,7 @@ abstract class XyoIterableObject : XyoBuff() {
      * @param offset The offset at which to read the header from.
      */
     private fun getNextHeader (offset : Int) : XyoObjectSchema {
+        checkIndex(offset + 2)
         return  XyoObjectSchema.createFromHeader(item.copyOfRange(offset, offset + 2))
     }
 
@@ -199,7 +187,7 @@ abstract class XyoIterableObject : XyoBuff() {
      *
      * @param currentOffset Where to start the iterator. (The offset of the first element)
      */
-    inner class XyoObjectIterator (private var currentOffset: Int) : Iterator<XyoBuff> {
+    inner class XyoObjectIterator (private var currentOffset: Int) : Iterator<XyoObjectStructure> {
 
         /**
          * Checks if there is another item in the set.
@@ -215,7 +203,7 @@ abstract class XyoIterableObject : XyoBuff() {
          *
          * @throws XyoObjectIteratorException If the bytes are malformed or if the index is out of range.
          */
-        override fun next(): XyoBuff {
+        override fun next(): XyoObjectStructure {
             val nextItem = readItemAtOffset(currentOffset)
 
             if (globalSchema == null) {
@@ -261,12 +249,7 @@ abstract class XyoIterableObject : XyoBuff() {
 
         if (schema.isIterable) {
             for (subItem in iterator) {
-                rootJsonObject.put(JSONArray(object : XyoIterableObject() {
-                    override val allowedOffset: Int
-                        get() = 0
-
-                    override var item: ByteArray = subItem.bytesCopy
-                }.toString()))
+                rootJsonObject.put(JSONArray((XyoIterableStructure(subItem.bytesCopy, 0)).toString()))
             }
         } else {
             rootJsonObject.put(item.toHexString())
@@ -278,35 +261,35 @@ abstract class XyoIterableObject : XyoBuff() {
     companion object {
 
         /**
-         * Converts an array of objects to a single type.
+         * Converts an array of structure to a single type.
          *
          * @param array The array of buffs to convert.
          * @param type The type to convert it two.
          * @throws XyoObjectException if the type can not be converted (wrong IDs).
          */
-        fun convertObjectsToType (array : Array<XyoBuff>, type: XyoObjectSchema) : Array<XyoBuff> {
-            val newValues = ArrayList<XyoBuff>()
+        fun convertObjectsToType (array : Array<XyoObjectStructure>, type: XyoObjectSchema) : Array<XyoObjectStructure> {
+            val newValues = ArrayList<XyoObjectStructure>()
 
             for (value in array) {
                 if (value.schema.id != type.id) {
                     throw XyoObjectException("Can not convert types! ${value.schema.id}, ${type.id}")
                 }
 
-                newValues.add(XyoBuff.newInstance(type, value.valueCopy))
+                newValues.add(XyoObjectStructure.newInstance(type, value.valueCopy))
             }
 
             return newValues.toTypedArray()
         }
 
         /**
-         * Creates an untyped array. (An array that can contain different types of objects)
+         * Creates an untyped array. (An array that can contain different types of structure)
          *
          * @param schema The schema of the array to encode.
          * @param values The values to encode into the typed set.
          * @throws XyoObjectException If the bytes are malformed.
          * @return The iterable object.
          */
-        fun createUntypedIterableObject (schema: XyoObjectSchema, values: Array<XyoBuff>) : XyoIterableObject {
+        fun createUntypedIterableObject (schema: XyoObjectSchema, values: Array<XyoObjectStructure>) : XyoIterableStructure {
             if (schema.isTyped) {
                 throw XyoObjectException("Can not create untyped object from typed schema!")
             }
@@ -323,12 +306,7 @@ abstract class XyoIterableObject : XyoBuff() {
                 buffer.put(item.bytesCopy)
             }
 
-            return object : XyoIterableObject() {
-                override val allowedOffset: Int
-                    get() = 0
-
-                override var item: ByteArray = XyoBuff.newInstance(schema, buffer.array()).bytesCopy
-            }
+            return XyoIterableStructure(XyoObjectStructure.newInstance(schema, buffer.array()).bytesCopy, 0)
         }
 
         /**
@@ -339,7 +317,7 @@ abstract class XyoIterableObject : XyoBuff() {
          * @throws XyoObjectException If the bytes are malformed.
          * @return The iterable object.
          */
-        fun createTypedIterableObject (schema: XyoObjectSchema, values: Array<XyoBuff>) : XyoIterableObject {
+        fun createTypedIterableObject (schema: XyoObjectSchema, values: Array<XyoObjectStructure>) : XyoIterableStructure {
             if (!schema.isTyped) {
                 throw XyoObjectException("Can not create typed object from untyped schema!")
             }
@@ -363,18 +341,7 @@ abstract class XyoIterableObject : XyoBuff() {
                 }
             }
 
-            return object : XyoIterableObject() {
-                override val allowedOffset: Int = 0
-                override var item: ByteArray = XyoBuff.getObjectEncoded(schema, buffer.array())
-                override val count: Int = values.count()
-
-                override val iterator: Iterator<XyoBuff>
-                    get() = values.iterator()
-
-                override fun get(index: Int): XyoBuff {
-                    return values[index]
-                }
-            }
+            return XyoIterableStructure(XyoObjectStructure.getObjectEncoded(schema, buffer.array()), 0)
         }
     }
 }
