@@ -2,10 +2,10 @@ apply plugin: 'jacoco'
 apply plugin: 'kotlin'
 apply plugin: 'java'
 apply plugin: 'org.sonarqube'
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'maven-publish'
 
 group 'xyo.network'
-
-sourceCompatibility = 1.8
 
 buildscript {
     ext.kotlin_version = '1.3.31'
@@ -22,8 +22,22 @@ buildscript {
         classpath "com.android.tools.build:gradle:3.2.1"
         classpath "org.junit.platform:junit-platform-gradle-plugin:1.0.0-M4"
         classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.7"
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
     }
 }
+
+def majorVersion = 1
+def minorVersion = 0
+
+Properties versionProps = new Properties()
+def versionPropsFile = file('version.properties')
+if (versionPropsFile.exists())
+    versionProps.load(new FileInputStream(versionPropsFile))
+def code = (versionProps['VERSION_CODE'] ?: "0").toInteger() + 1
+def verString = majorVersion + '.' + minorVersion + '.' + code
+
+versionProps['VERSION_CODE'] = code.toString()
+versionProps.store(versionPropsFile.newWriter(), null)
 
 jacocoTestReport {
     reports {
@@ -51,7 +65,49 @@ dependencies {
     testImplementation "junit:junit:4.11"
 }
 
-repositories {
-    mavenCentral()
-    maven { url 'https://jitpack.io' }
+publishing {
+    publications {
+        Production(MavenPublication) {
+            artifact("$buildDir/libs/sdk-objectmodel-kotlin.jar")
+            groupId 'network.xyo'
+            artifactId 'sdk-objectmodel-kotlin'
+            version verString
+
+            //The publication doesn't know about our dependencies, so we have to manually add them to the pom
+            pom.withXml {
+                //def dependenciesNode = asNode().appendNode('dependencies')
+                //Iterate over the compile dependencies (we don't want the test ones), adding a <dependency> node for each
+                configurations.compile.allDependencies.each {
+                    if (it.name != 'unspecified') {
+                        def dependencyNode = dependenciesNode.appendNode('dependency')
+                        dependencyNode.appendNode('groupId', it.group)
+                        dependencyNode.appendNode('artifactId', it.name)
+                        dependencyNode.appendNode('version', it.version)
+                    }
+                }
+            }
+        }
+    }
+}
+
+bintray {
+    user = System.getenv('BINTRAY_USER')
+    key = System.getenv('BINTRAY_KEY')
+    dryRun = false
+    override = false
+    publish = true
+    pkg {
+        repo = 'xyo'
+        name = 'dk-objectmodel-kotlin'
+        userOrg = 'xyoraclenetwork'
+        licenses = ['LGPL-3.0']
+        desc = 'Kotlin ObjecModel Classes'
+        vcsUrl = 'https://github.com/xyoraclenetwork/sdk-objectmodel-kotlin.git'
+
+        version {
+            name = verString
+            vcsTag = verString
+        }
+    }
+    publications = ['Production']
 }
