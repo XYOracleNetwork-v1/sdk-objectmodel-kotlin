@@ -17,7 +17,7 @@ script:
 
 deploy:
   provider: script
-  script: ./gradlew :sdk-objectmodel-kotlin:assembleRelease :sdk-objectmodel-kotlin:bintrayUpload
+  script: ./gradlew assemble bintrayUpload
   skip_cleanup: true
   file: bintray
   user: $BINTRAY_USER

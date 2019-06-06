@@ -98,10 +98,10 @@ bintray {
     publish = true
     pkg {
         repo = 'xyo'
-        name = 'dk-objectmodel-kotlin'
+        name = 'sdk-objectmodel-kotlin'
         userOrg = 'xyoraclenetwork'
         licenses = ['LGPL-3.0']
-        desc = 'Kotlin ObjecModel Classes'
+        desc = 'Kotlin Object Model Classes'
         vcsUrl = 'https://github.com/xyoraclenetwork/sdk-objectmodel-kotlin.git'
 
         version {
