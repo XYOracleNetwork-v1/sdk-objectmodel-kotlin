@@ -11,7 +11,7 @@
 
 ## Table of Contents
 
--   [Title](#sdk-bletcpbridge-swift)
+-   [Title](#sdk-objectmodel-kotlin)
 -   [Description](#description)
 -   [Building and Testing with Gradle](#building-and-testing-with-gradle)
 -   [Maintainers](#maintainers)
